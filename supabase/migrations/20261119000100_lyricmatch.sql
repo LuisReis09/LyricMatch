@@ -201,7 +201,7 @@ declare
   v_code text;
 begin
   loop
-    v_code := upper(substr(encode(gen_random_bytes(5), 'hex'), 1, 6));
+    v_code := upper(substr(encode(extensions.gen_random_bytes(5), 'hex'), 1, 6));
     exit when not exists (select 1 from lyricmatch.rooms where code = v_code);
   end loop;
   return v_code;
