@@ -1,7 +1,6 @@
 import React from "react";
 import { useRoomContext } from "../../../../utils/RoomContext";
 import { useSongContext } from "../../../../utils/SongContext";
-import { useSocket } from "../../../../utils/SocketContext";
 import Button from "../../../../utils/Button";
 import SongPlayer from "./SongPlayer";
 import "../../../../css/game/mobile/midframe/BetweenRounds.css"
@@ -13,8 +12,7 @@ interface BetweenRoundsProps {
 
 
 const BetweenRounds: React.FC<BetweenRoundsProps> = ({setFrame}) => {
-    const socket = useSocket();
-    const { player, room } = useRoomContext();
+    const { player, room, nextRound } = useRoomContext();
     const { song_selected } = useSongContext();
 
     const isTheHost = player?.isHost;
@@ -41,11 +39,7 @@ const BetweenRounds: React.FC<BetweenRoundsProps> = ({setFrame}) => {
             {
                 isTheHost ?
                 <Button text={`${room.currentRound < room.maxRounds ? "Next Round" : "Rankings"}`} func={() => {
-                    if(room.currentRound >= room.maxRounds) {
-                        socket?.emit("getRankings")
-                    }else{
-                        socket?.emit("nextRound")   
-                    }
+                    void nextRound();
                 }}/>
                 :
                 <div id="between_rounds_waiting">Waiting for the host...</div>

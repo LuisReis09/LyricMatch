@@ -1,17 +1,15 @@
 import "../../../css/game/mobile/chat.css";
 import { useState } from "react";
 import { useRoomContext } from "../../../utils/RoomContext";
-import { useSocket } from "../../../utils/SocketContext"
 
 const Chat: React.FC = () => {
     const [message, setMessage] = useState<string>("");
-    const { room, players } = useRoomContext();
-    const socket = useSocket();
+    const { room, players, sendMessage: sendRoomMessage } = useRoomContext();
 
     const sendMessage = () => {
         if (message.trim() !== "") {
             // Emit the message to the server
-            socket?.emit("sendMessage", { message: message });
+            void sendRoomMessage(message);
             setMessage(""); // Clear the input field after sending
         }
     };

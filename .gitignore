@@ -1,0 +1,12 @@
+# Credentials and generated artefacts
+.env
+.env.*
+!.env.example
+front/.env
+front/.env.*
+!front/.env.example
+node_modules/
+front/node_modules/
+front/dist/
+.supabase/
+coverage/

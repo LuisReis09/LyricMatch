@@ -1,13 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useRoomContext } from "../../../utils/RoomContext";
 // import { useRef } from "react";
-import { useSocket } from "../../../utils/SocketContext";
 
 import PlayerCard from "../../../utils/PlayerCard";
 import "../../../css/game/desktop/leftBox.css";
-
-// Pega o BACKEND_URL do .env:
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
 
 const LeftBox: React.FC = () => {
   const [current_players, setCurrentPlayers] = useState<number>(0);
@@ -19,8 +15,7 @@ const LeftBox: React.FC = () => {
   const [room_code, setRoomCode] = useState<string>("");
   const [showAlert, setShowAlert] = useState<boolean>(false);
 
-  const { room, players, player, setInGame } = useRoomContext();
-  const socket = useSocket();
+  const { room, players, player, leaveRoom } = useRoomContext();
 
   useEffect(() => {
     setRoomCode(room?.code);
@@ -39,7 +34,7 @@ const LeftBox: React.FC = () => {
   const copyToClipboard = () => {
     const baseUrl = window.location.origin;
     const textToCopy = `${baseUrl}?code=${room_code}`;
-    
+
     // Método moderno (recomendado)
     if (navigator.clipboard) {
       navigator.clipboard.writeText(textToCopy)
@@ -50,14 +45,14 @@ const LeftBox: React.FC = () => {
       useFallbackCopy(textToCopy);
     }
   };
-  
+
   const useFallbackCopy = (text: string) => {
     const textarea = document.createElement('textarea');
     textarea.value = text;
     textarea.style.position = 'fixed';  // Evita scroll para o elemento
     document.body.appendChild(textarea);
     textarea.select();
-    
+
     try {
       const successful = document.execCommand('copy');
       if (successful) {
@@ -69,10 +64,10 @@ const LeftBox: React.FC = () => {
     } catch (err) {
       console.error('Error in fallback copy:', err);
     }
-    
+
     document.body.removeChild(textarea);
   };
-  
+
   const showFeedback = () => {
     setShowAlert(true);
     setTimeout(() => setShowAlert(false), 3000);
@@ -99,19 +94,17 @@ const LeftBox: React.FC = () => {
             isHost={p.isHost}
             hostView={player?.isHost}
             playerId={p.id}
-            socketId={p.socketId}
             key={p.name}
           />
         ))}
-        
+
       </div>
 
       <div id="actions">
         <button
           className="copy-code-button"
           onClick={() => {
-            socket?.emit("exitRoom");
-            setInGame(false);
+            void leaveRoom();
           }}
         >
           <i className="fa fa-sign-out" id="sign_out_invert"></i>

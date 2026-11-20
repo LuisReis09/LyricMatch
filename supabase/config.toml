@@ -1,0 +1,12 @@
+project_id = "lyricmatch"
+
+[functions.search-music]
+verify_jwt = true
+
+[functions.submit-answer]
+verify_jwt = true
+
+[functions.advance-rounds]
+# This function validates the service-role bearer token itself so it can be
+# called by a Supabase Cron job without accepting player tokens.
+verify_jwt = false

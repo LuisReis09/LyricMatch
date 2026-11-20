@@ -1,11 +1,9 @@
 import '../../../../css/game/mobile/midframe/GameStart.css'
 import Button from '../../../../utils/Button';
 import { useRoomContext } from '../../../../utils/RoomContext';
-import { useSocket } from '../../../../utils/SocketContext';
 
 const GameStart: React.FC = () => {
-    const socket = useSocket();
-    const { player } = useRoomContext();
+    const { player, startGame } = useRoomContext();
 
 
 
@@ -16,7 +14,7 @@ const GameStart: React.FC = () => {
                 player?.isHost ?
                 <Button
                     text="Start Game"
-                    func={() => {socket?.emit("startGame")}} // Placeholder for the start game function
+                    func={() => { void startGame(); }}
                 />
                 :
                 <div id="mobile_game_start_text">Waiting for the host to start the game</div>

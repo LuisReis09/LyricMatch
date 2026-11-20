@@ -1,93 +1,166 @@
-# 🎵 LyricMatch
+# LyricMatch
 
-**http://lyricmatch.com.br**  
-Desafie seu conhecimento musical com um jogo divertido e interativo!
+LyricMatch is a multiplayer song-association game. The browser is a React/Vite
+application; Supabase is the complete backend: Auth provides an anonymous
+player identity, PostgreSQL stores and authorizes game state, Realtime sends
+room changes, and Edge Functions isolate music-provider and lyric-validation
+requests. The production frontend is designed for Vercel.
 
----
+## Architecture
 
-## 📖 Sobre o Projeto
+```
+Vercel (front/) ── publishable key ──> Supabase Auth + Realtime
+       │                                      │
+       ├─ protected RPCs ─────────────────────> lyricmatch PostgreSQL schema
+       └─ Edge Functions ─────────────────────> Deezer / lyric providers
+                                               │
+                               scheduled advance-rounds function
+```
 
-**LyricMatch** é um jogo multiplayer inspirado no famoso *"Song Association Game"*, onde você recebe uma palavra e precisa lembrar rapidamente de uma música que a contenha na letra. Criado com carinho por quatro estudantes de Ciência da Computação da UFPB:
+All game resources live in the `lyricmatch` schema. No table, policy, trigger,
+or function in `public` or another application's schema is changed.
 
-- Luis Reis  
-- Rafael de França  
-- João Marcos  
-- Herick José de Freitas  
+### Multiplayer model
 
-O projeto foi desenvolvido como parte da disciplina de Redes de Computadores, mas também nasceu da nossa paixão por música e jogos online.
+- A visitor signs in anonymously once; the Supabase user id is the player
+  identity and survives a reconnect in the same browser.
+- `create_room`, `join_room`, `start_game`, host changes, kick, leave, chat,
+  reset, and next round are PostgreSQL RPCs. The database validates membership
+  and host status for every sensitive operation.
+- A room snapshot is the client state source of truth. The app subscribes to
+  Postgres Changes for its room and reloads that authorized snapshot after a
+  change. `Presence` heartbeats track recent activity without controlling game
+  authority.
+- `round_ends_at` is the authoritative server timestamp. `advance_due_rooms`
+  atomically ends a round, scores answers once, and starts/finishes following
+  rounds. A client can request a due-state check as a fallback, but a scheduled
+  Edge Function advances games when no browser remains open.
+- Answer correctness is computed only in `submit-answer`: it resolves the
+  selected Deezer track, retrieves lyrics server-side, then invokes a
+  service-role-only SQL function. Browsers cannot submit a score or correctness
+  flag.
 
----
+## Required configuration
 
-## 📄 Declaração de Propriedade Intelectual
+Copy the example files; never commit a real `.env`.
 
-Este projeto, **LyricMatch**, é de autoria dos desenvolvedores brasileiros **Luis Gustavo Lacerda Reis**, **Rafael de França Silva**, **João Marcos Cunha Santos** e **Herick José de Freitas**.
+```powershell
+Copy-Item .env.example .env
+Copy-Item front/.env.example front/.env.local
+```
 
-O LyricMatch foi oficialmente lançado em **23 de abril de 2025** como projeto final da disciplina **Redes de Computadores** do curso de **Bacharelado em Ciência da Computação** (Centro de Informática - UFPB).
+`front/.env.local` and Vercel need only:
 
-Todo o conteúdo deste repositório (código, ideias, estrutura do jogo, entre outros) está protegido por direitos autorais. O jogo é gratuito, mas **não é permitida a cópia, modificação ou reutilização** do projeto sem autorização expressa da equipe.
+| Variable | Purpose |
+| --- | --- |
+| `VITE_SUPABASE_URL` | Supabase project URL |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | public/publishable key |
 
-Se você tem interesse em utilizar partes do projeto, colaborar ou adquirir direitos de uso, entre em contato conosco para discutir possíveis parcerias.
+The root `.env` is for Supabase CLI/server-side operations. `SUPABASE_SECRET_KEY`
+is privileged: do not put it in Vercel frontend variables, client code, or a
+checked-in file. Supabase Edge Functions receive `SUPABASE_URL`,
+`SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` from their runtime. Set
+the optional Edge secret `ALLOWED_ORIGIN` to the final Vercel origin (for
+example `https://your-project.vercel.app`) after deployment.
 
-🔗 Site oficial: [http://lyricmatch.com.br](http://lyricmatch.com.br)  
-🔗 Repositório: [https://github.com/Herickjf/LyricMatch](https://github.com/Herickjf/LyricMatch)
+## Supabase setup and migrations
 
----
+Prerequisites: Supabase CLI, Docker for local development if desired, and a
+project access token for CLI login. The supplied project credentials are not a
+management access token and are intentionally not used to mutate the cloud
+database.
 
-## 🎮 Como Jogar
+1. In **Authentication → Providers**, enable **Anonymous sign-ins**.
+2. In **Settings → API → Exposed schemas**, add `lyricmatch` without removing
+   existing schemas. This is required for PostgREST RPC and Realtime on a
+   custom schema and is the only dashboard setting that cannot be expressed in
+   a regular SQL migration without touching global project configuration.
+3. Link the CLI to the intended shared project, then review and apply the
+   versioned migrations:
 
-1. **Escolha um avatar e nickname.**  
-2. **Entre ou crie uma sala.**
+   ```powershell
+   supabase login
+   supabase link --project-ref <your-project-ref>
+   supabase db push
+   ```
 
-### Configurações da Sala:
+   The repository includes a comment-only marker for the remote
+   `20261114000000` migration owned by the other shared project. It is not
+   executed or modified; this prevents the CLI from asking for a migration
+   history repair. Only the two `20261119...` LyricMatch migrations are new.
 
-- **Número de Jogadores:** defina o limite máximo.  
-- **Número de Rodadas:** escolha quantas serão jogadas.  
-- **Idioma:** selecione entre Português, Inglês ou Espanhol.
+   The migration creates the `lyricmatch` schema, RLS policies, RPCs, indexes,
+   Realtime publication membership, the complete game model, rate-limit table,
+   and imports the original 850 words. It does not drop or alter any resource
+   outside `lyricmatch`.
 
-### Durante o Jogo:
+4. Deploy the Edge Functions:
 
-- Uma **palavra** é exibida no início da rodada.  
-- Você tem **30 segundos** para digitar o nome do artista e o título da música relacionada.  
-- Após clicar em "Buscar", você verá até **5 sugestões de músicas**.  
-- Escolha a que contém a palavra exibida.
+   ```powershell
+   supabase functions deploy search-music
+   supabase functions deploy submit-answer
+   supabase functions deploy advance-rounds
+   supabase secrets set ALLOWED_ORIGIN=https://your-vercel-domain.example
+   ```
 
-### Resultados:
+5. Schedule a `POST` to `https://<project-ref>.supabase.co/functions/v1/advance-rounds`
+   at least once per minute with the service-role bearer token. Use Supabase
+   Cron/pg_net plus Vault, or a protected external scheduler. Do not hard-code
+   that token in SQL, source code, or Vercel. This scheduling step is required
+   for automatic progression when every player has left the page.
 
-- Veja se sua escolha foi válida.  
-- Escute uma **prévia da música** e veja informações adicionais.  
-- No final, confira a **pontuação e ranking final**.
+For an administrator to see the aggregate dashboard, give that user's JWT
+`app_metadata` the boolean claim `lyricmatch_admin: true` through a trusted
+server-side Supabase Admin API call. Normal players cannot query aggregate
+location or operational metrics. Location storage is opt-in at the client
+integration level and deliberately never stores IP addresses.
 
----
+## Local frontend development
 
-## 💡 Inspiração
+```powershell
+cd front
+npm ci
+npm run dev
+```
 
-Inspirado no segmento da **Elle** chamado *"Song Association Game"*, o objetivo do LyricMatch é proporcionar momentos de diversão entre amigos, desafiando sua memória e conhecimento musical com muito bom humor e criatividade.
+Run `npm run build` before deployment. The app requires a real migrated
+Supabase project; it has no mock or fallback backend.
 
----
+## Deploy to Vercel
 
-## 🤝 Contato
+1. Import this repository in Vercel.
+2. Set **Root Directory** to `front`.
+3. Let Vercel detect **Vite** (build command `npm run build`, output `dist`).
+4. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` for Production,
+   Preview, and Development as appropriate. Do not add a service-role/secret
+   key.
+5. Deploy. `front/vercel.json` provides the SPA history fallback.
+6. Update `ALLOWED_ORIGIN` in Supabase to the deployed frontend origin, then
+   create/join a room from two browsers to validate Realtime.
 
-Se você é uma empresa interessada em parceria ou deseja adquirir o jogo, ou se apenas quer mandar sugestões ou nos apoiar para manter o projeto online, fale com a gente:
+## Security notes
 
-📧 **lyricmatch.contact@gmail.com**
+- RLS permits direct reads only to room members. Browser roles receive no table
+  insert/update/delete permissions; all writes happen through narrow RPCs.
+- Passwords are hashed with `pgcrypto`; snapshots never contain a password hash.
+- The service-role-only answer-verification and rate-limit functions cannot be
+  executed by `authenticated` browser users.
+- `search-music` and `submit-answer` require a valid user token, apply database
+  backed per-minute limits, bound inputs, and use outbound timeouts/fallbacks.
+- If any prior deployment or git history contained a real key, rotate it in
+  Supabase before using this migration. The currently ignored local `.env` is
+  not a substitute for rotation of previously exposed credentials.
 
----
+## Validation checklist
 
-## 📢 Avisos Importantes
+After deployment, validate with at least two anonymous browser sessions:
 
-- **Este projeto não tem fins comerciais.** Não cobramos por nenhum serviço oferecido.  
-- Todas as **imagens, letras e músicas** utilizadas pertencem aos seus respectivos autores. Este é um projeto educacional e de entretenimento. Caso haja qualquer problema relacionado a direitos autorais, entre em contato.  
-- Utilizamos a **API gratuita da Deezer** para buscar músicas (imagens, título, artista, prévia de áudio etc.). Somos gratos ao suporte e recomendamos visitar o site deles!
-
----
-
-## ❤️ Agradecimentos
-
-A música tem o poder único de nos conectar, expressar sentimentos e criar memórias. Criamos o LyricMatch para homenagear essa força, proporcionando um espaço divertido onde você pode se desafiar, rir e relembrar grandes canções com os amigos.
-
-Esperamos que aproveite tanto quanto nós curtimos desenvolver!
-
----
-
-**Com carinho,**  
-**Equipe LyricMatch**
+1. Create a password-protected room and join it with its code.
+2. Verify live player/chat/host/kick updates, then refresh one browser and
+   confirm it reconnects to the same player.
+3. Start a round, submit simultaneous answers, and confirm the clock and score
+   agree across sessions.
+4. Wait for the scheduled `advance-rounds` invocation with all game tabs
+   closed, reopen a session, and confirm its authoritative state is current.
+5. Confirm a non-host cannot call host RPCs or write table data using the
+   browser console, and a non-admin cannot access dashboard aggregates.

@@ -1,13 +1,11 @@
 import { useEffect, useState} from "react";
 import { useRoomContext } from "../../../../utils/RoomContext";
-import { useSocket } from "../../../../utils/SocketContext";
 import RankingCard from "../../../../utils/RankingCard";
 
 import "../../../../css/game/desktop/midBox/rankings.css";
 
 const Rankings: React.FC = () => {
-    const { room } = useRoomContext();
-    const socket = useSocket();
+    const { room, player: currentPlayer } = useRoomContext();
     const [players, setPlayers] = useState<any[]>([]);
 
     useEffect(() => {
@@ -37,7 +35,7 @@ const Rankings: React.FC = () => {
                             name={player.name}
                             position={index + 1}
                             score={player.score}
-                            isMe={player.socketId == socket?.id}
+                            isMe={player.id === currentPlayer?.id}
                         />
                     ))}
                 </div>

@@ -1,14 +1,12 @@
 import React from "react";
 import { useEffect, useState } from "react";
 import { useRoomContext } from "../../../../utils/RoomContext";
-import { useSocket } from "../../../../utils/SocketContext";
 import RankingCard from "../../../../utils/RankingCard";
 
 import "../../../../css/game/mobile/midframe/Rankings.css"
 
 const Rankings: React.FC = () => {
-    const { room, player } = useRoomContext();
-    const socket = useSocket();
+    const { room, player, resetRoom } = useRoomContext();
     const [players, setPlayers] = useState<any[]>([]);
 
     useEffect(() => {
@@ -31,14 +29,14 @@ const Rankings: React.FC = () => {
                 </div>
 
                 <div id="rankings_list">
-                    {players.map((player, index) => (
+                    {players.map((rankedPlayer, index) => (
                         <RankingCard
                             key={index}
-                            avatar={player.avatar}
-                            name={player.name}
+                            avatar={rankedPlayer.avatar}
+                            name={rankedPlayer.name}
                             position={index + 1}
-                            score={player.score}
-                            isMe={player.socketId == socket?.id}
+                            score={rankedPlayer.score}
+                            isMe={rankedPlayer.id === player?.id}
                         />
                     ))}
                 </div>
@@ -47,7 +45,7 @@ const Rankings: React.FC = () => {
             <div id="ranking_box_footer">Congratulations!</div>
             {
                 player?.isHost &&
-                <button id="mobile_restart_button" onClick={() => socket?.emit("resetRoom")}>Restart</button>
+                <button id="mobile_restart_button" onClick={() => void resetRoom()}>Restart</button>
             }
         </div>
     )

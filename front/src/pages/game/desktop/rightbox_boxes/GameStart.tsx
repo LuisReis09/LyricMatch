@@ -1,16 +1,14 @@
-import {useSocket} from "../../../../utils/SocketContext"
 import { useRoomContext } from "../../../../utils/RoomContext";
 import "../../../../css/game/desktop/rightbox_boxes/gamestart.css"
 import Button from "../../../../utils/Button"
 
 const GameStart: React.FC = () => {
-    const socket = useSocket();
-    const { room } = useRoomContext();
-    const hostPlayer: any = room?.players.find((player: any) => player.isHost && player.socketId == socket?.id);
+    const { player, startGame: startRoomGame } = useRoomContext();
+    const hostPlayer = player?.isHost;
 
-    const startGame = () => {
+    const handleStartGame = () => {
         if(hostPlayer)
-            socket?.emit("startGame");
+            void startRoomGame();
     }
 
 
@@ -22,8 +20,7 @@ const GameStart: React.FC = () => {
             {
                 hostPlayer &&
                 <div id="game_start_host_buttons">
-                    {/* <button id="game_start_button_start_game" onClick={() => startGame()}>Start</button> */}
-                    <Button id="game_start_button_start_game" func={startGame} text="Start"/>
+                    <Button id="game_start_button_start_game" func={handleStartGame} text="Start"/>
                 </div>
             }
         </div>

@@ -6,21 +6,18 @@ import MobileRightFrame from "./MobileRightFrame";
 import MobileChatFrame from "./MobileChatFrame";
 
 import "../../../css/game/mobile/mainframe.css"
-import { useSocket } from "../../../utils/SocketContext";
 import { useRoomContext } from "../../../utils/RoomContext";
 
 const MainFrame: React.FC = () => {
     const [lastFrame, setLastFrame] = React.useState<string>("middle_frame");
     const [frame, setFrame] = React.useState<string>("middle_frame");
-    const socket = useSocket();
-    const { room, setInGame } = useRoomContext();
+    const { leaveRoom } = useRoomContext();
 
     return (
         <div id="mobile_main_frame">
             <div id="mobile_main_frame_option_buttons">
                 <button className="fa fa-sign-out"   onClick={() => {
-                    socket?.emit("exitRoom")
-                    setInGame(false);
+                    void leaveRoom();
                 }}/>
                 <button 
                     className={frame == "left_frame"? "fa fa-music" : "fa fa-users"}     

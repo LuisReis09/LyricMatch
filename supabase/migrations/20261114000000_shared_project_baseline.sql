@@ -1,0 +1,4 @@
+-- Marker only: this migration already exists in the shared Supabase project
+-- and belongs to the other application. Its SQL is intentionally not copied
+-- or replayed here. Keep this version so Supabase CLI can reconcile history
+-- without modifying or repairing the shared migration table.

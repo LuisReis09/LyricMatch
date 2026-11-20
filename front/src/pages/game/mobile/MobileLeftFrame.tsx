@@ -63,7 +63,6 @@ const MobileLeftFrame: React.FC<MobileLeftFrameProps> = ({ setFrame }) => {
                         isHost={player.isHost}
                         hostView={isTheHost} 
                         playerId={player.id}
-                        socketId={player.socketId}
                         key={player.name} 
                     />
                 ))
