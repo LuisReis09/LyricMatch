@@ -166,18 +166,25 @@
     #home {
         width: 95%;
         display: block;
+        flex: initial;
+        min-height: calc(100dvh - 4.5rem);
+        padding: .25rem 0 1.5rem;
         overflow-y: auto;
+        overscroll-behavior: contain;
     }
-    .home_intro { margin: .3rem 0 1.4rem; }
+    .home_intro { margin: .3rem .2rem 1.4rem; }
     .home_eyebrow { font-size: .68rem; }
     #game_title { font-size: 2.5rem; }
+    .home_description { font-size: .96rem; }
+    .home_shortcuts { margin-top: 1rem; }
     
     #form_box {
         flex-direction: column;
         margin: 0 auto;
         width: 100%;
-        padding: 15px 15px;
-        gap: 10px;
+        padding: 1rem .9rem 1.25rem;
+        gap: 1rem;
+        border-radius: 1rem;
     }
 
     #fixed_box{
@@ -185,12 +192,19 @@
         gap: 10px;
     }
 
+    #user_avatar_box {
+        width: 84px;
+        height: 84px;
+    }
+
     #options_entry_box {
         gap: 0px;
     }
 
     #options_entry_box > .option_entry {
-        width: 90%;
-        font-size: 14px;
+        flex: 1;
+        width: auto;
+        min-height: 2.7rem;
+        font-size: .92rem;
     }
 }

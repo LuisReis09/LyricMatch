@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import CreatorBox from '../about/CreatorBox'
 
 interface AboutGameProps {
@@ -6,10 +6,26 @@ interface AboutGameProps {
 }
 
 const AboutGame: React.FC<AboutGameProps> = ({closeMenu}) => {
+    const pageRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        document.body.classList.add('about-page-active');
+        document.documentElement.classList.add('about-page-active');
+        window.scrollTo({ top: 0, left: 0 });
+        pageRef.current?.scrollTo({ top: 0, left: 0 });
+        return () => {
+            document.body.classList.remove('about-page-active');
+            document.documentElement.classList.remove('about-page-active');
+        };
+    }, []);
+
     return (
-        <div id="about" onClick={closeMenu}>
+        <main id="about" className="about_page about_game_page" ref={pageRef} onClick={closeMenu}>
             <div id="creators_box">
-                <h1>Creators</h1>
+                <div className="about_panel_heading">
+                    <span>LYRIC MATCH</span>
+                    <h1>The team</h1>
+                </div>
                 <CreatorBox name='Herick José' image='avatar44.png' instagram='herick_jf' github='Herickjf' linkedin='https://www.linkedin.com/in/herick-jos%C3%A9-de-freitas-99a1ba266/'/>
                 <CreatorBox name='João Marcos' image='avatar26.png' instagram='j4marcosdev' github='j4marcos' linkedin='https://www.linkedin.com/in/j4marcos/'/>
                 <CreatorBox name='Luis Reis' image='avatar38.png' instagram='luisgustavo824' github='LuisReis09' linkedin='https://www.linkedin.com/in/luis-reis-7b22a6330/'/>
@@ -19,7 +35,7 @@ const AboutGame: React.FC<AboutGameProps> = ({closeMenu}) => {
 
             <div id="about_text_box">
                 <div id="about_text">
-                    <div id="about_text_title" className='highlight'>Welcome to LyricMatch!</div>
+                    <div id="about_text_title" className='highlight'>How to play</div>
                     
                     <div id="about_text_body">
                         
@@ -91,7 +107,7 @@ const AboutGame: React.FC<AboutGameProps> = ({closeMenu}) => {
                     </div>
                 </div>
             </div>
-        </div>
+        </main>
     )
 }
 

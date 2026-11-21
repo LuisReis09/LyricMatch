@@ -118,27 +118,28 @@
     background-position: center;
 }
 
-input[type="range"] {
+input.song_progress_input {
     -webkit-appearance: none; /* Remove o estilo nativo (necessário!) */
-    width: 100%;
+    width: calc(100% + 14px);
+    margin: 0 -7px;
     height: 4px;
-    background: #fff;
+    background: linear-gradient(to right, transparent 0 7px, #fff 7px calc(100% - 7px), transparent calc(100% - 7px));
     border-radius: 5px;
     outline: none;
   }
   
   /* Trilha (barra) */
-input[type="range"]::-webkit-slider-runnable-track {
+input.song_progress_input::-webkit-slider-runnable-track {
     height: 4px;
-    background: #fff;
+    background: transparent;
     border-radius: 8px;
 }
-input[type="range"]:active::-webkit-slider-runnable-track{
+input.song_progress_input:active::-webkit-slider-runnable-track{
     height: 2px;
 }
   
   /* Botão de arrastar */
-input[type="range"]::-webkit-slider-thumb {
+input.song_progress_input::-webkit-slider-thumb {
     -webkit-appearance: none;
     background: #eefbba;
     height: 14px;
@@ -147,24 +148,24 @@ input[type="range"]::-webkit-slider-thumb {
     cursor: pointer;
     margin-top: -5px; /* Alinha com a trilha */
 }
-input[type="range"]:hover::-webkit-slider-thumb {
+input.song_progress_input:hover::-webkit-slider-thumb {
     transition: ease-in-out .05s;
     transform: scale(1.2);
 }
-input[type="range"]:active::-webkit-slider-thumb{
+input.song_progress_input:active::-webkit-slider-thumb{
     background: #cce07d;
     transition: ease-in-out .05s;
     transform: scale(1.2);
 }
 
 /* Firefox */
-input[type="range"]::-moz-range-track {
+input.song_progress_input::-moz-range-track {
     height: 4px;
-    background: #fff;
+    background: transparent;
     border-radius: 5px;
 }
   
-input[type="range"]::-moz-range-thumb {
+input.song_progress_input::-moz-range-thumb {
     height: 16px;
     width: 16px;
     background: #cce07d;

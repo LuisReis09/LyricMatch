@@ -100,13 +100,21 @@ p{
 
 @media screen and (max-width: 700px){
     #nav_bar {
+        width: 94%;
         min-height: 4.5rem;
+        gap: .4rem;
     }
     #logo_icon{
         width: 4.25rem;
         height: 3.75rem;
     }
-    .home_nav_links { gap: 0; }
-    .home_nav_link { padding: .48rem .55rem; font-size: .76rem; }
+    .home_nav_links {
+        max-width: calc(100vw - 5.1rem);
+        gap: 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+    .home_nav_links::-webkit-scrollbar { display: none; }
+    .home_nav_link { padding: .5rem .58rem; font-size: .76rem; white-space: nowrap; }
     
 }

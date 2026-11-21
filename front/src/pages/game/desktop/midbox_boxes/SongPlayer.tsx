@@ -85,6 +85,7 @@ const SongPlayer: React.FC = () => {
 
   const playbackDuration = Number.isFinite(duration) && duration > 0 ? duration : 0;
   const playbackPosition = Math.min(Math.max(currentTime, 0), playbackDuration);
+  const playbackProgress = playbackDuration ? `${(playbackPosition / playbackDuration) * 100}%` : "0%";
 
   return (
     <div id="songPlayer_box">
@@ -116,7 +117,8 @@ const SongPlayer: React.FC = () => {
                 max={playbackDuration}
                 value={playbackPosition}
                 onChange={handleSeek}
-                style={{ width: '100%' }}
+                className="song_progress_input"
+                style={{ "--song-progress": playbackProgress } as React.CSSProperties}
             />
             <div id="song_time" style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span>{formatTime(currentTime)}</span>

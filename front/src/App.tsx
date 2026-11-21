@@ -32,6 +32,13 @@ const App = () => {
       if (selectedSongPhaseRef.current !== answerPhase) {
         selectedSongPhaseRef.current = answerPhase;
         setSongSelected(room.answers.find((answer) => answer.playerId === player?.id) ?? null);
+      } else {
+        // Keep a deliberately selected answer, but refresh that same answer
+        // from the server so a host validation immediately updates the player.
+        setSongSelected((selected: any) => {
+          if (!selected?.id) return selected;
+          return room.answers.find((answer) => answer.id === selected.id) ?? selected;
+        });
       }
     } else if (room.status === "playing") {
       setTimerInit(room.roundStartedAt ? new Date(room.roundStartedAt).getTime() : Date.now());
