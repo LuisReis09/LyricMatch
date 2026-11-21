@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import TextInput from "../../../../utils/TextInput";
 import Button from "../../../../utils/Button";
 import { useSearchContext } from "../../../../utils/SearchContext";
@@ -12,6 +12,7 @@ const SearchSong: React.FC = () => {
   const [track, setTrack] = useState("");
   const [timer, setTimer] = useState(room?.roundTimer ?? 30);
   const [alert, setAlert] = useState("");
+  const trackInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const update = () => setTimer(Math.max(0, Math.ceil(((room?.roundEndsAt ? new Date(room.roundEndsAt).getTime() : Date.now()) - Date.now()) / 1000)));
@@ -35,8 +36,8 @@ const SearchSong: React.FC = () => {
     <div id="search_song_word_box">{room?.currentWord}</div>
     <div id="search_song_subtitle">Enter a song with the word: {room?.currentWord}</div>
     <div id="search_box"><div id="search_song_inputs_box">
-      <TextInput label="Artist:" setText={setArtist} placeholder="Enter the name of the artist" />
-      <TextInput label="Song:" setText={setTrack} placeholder="Enter the name of the song" enterFunc={search} />
+      <TextInput label="Artist:" setText={setArtist} placeholder="Enter the name of the artist" enterFunc={() => trackInputRef.current?.focus()} />
+      <TextInput ref={trackInputRef} label="Song:" setText={setTrack} placeholder="Enter the name of the song" enterFunc={search} />
     </div><div id="search_song_button"><Button text="Search" func={search} /></div></div>
     <div id="search_song_timer_back"><div id="search_song_timer_bar" style={{ width: `${Math.max(0, 100 / duration * timer)}%` }} /></div>
     {alert && <div className="custom-alert">{alert}</div>}

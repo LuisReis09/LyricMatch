@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { forwardRef, useState } from "react";
 import "../css/utils/input.css"
 
 interface TextInput_Params{
@@ -10,7 +10,7 @@ interface TextInput_Params{
     isPassword?: boolean
 }
 
-const TextInput : React.FC<TextInput_Params> = ({label, placeholder, setText, value, enterFunc, isPassword}) =>{
+const TextInput = forwardRef<HTMLInputElement, TextInput_Params>(({label, placeholder, setText, value, enterFunc, isPassword}, ref) => {
     const [showPassword, setShowPassword] = useState<boolean>(isPassword ? true : false);
 
     const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -32,6 +32,7 @@ const TextInput : React.FC<TextInput_Params> = ({label, placeholder, setText, va
                 <label className="text_input_label">{label}</label>
             }
             <input
+                    ref={ref}
                     {...(showPassword ? {type: "password"} : {type: "text"})}
                     className="text_input"
                     onChange={(e) => setText && setText(e.target.value)} 
@@ -59,6 +60,8 @@ const TextInput : React.FC<TextInput_Params> = ({label, placeholder, setText, va
             }
         </div>
     )
-}
+});
+
+TextInput.displayName = "TextInput";
 
 export default TextInput

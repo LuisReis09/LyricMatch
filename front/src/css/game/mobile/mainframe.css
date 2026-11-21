@@ -1,26 +1,35 @@
 #mobile_main_frame{
     display: flex;
     flex-direction: column;
-    height: 90%;
     position: relative;
+    padding-top: 3.75rem;
 }
 
 #mobile_main_frame_option_buttons{
     position: absolute;
     display: flex;
-    gap: 15px;
-    top: -30px;
+    gap: .75rem;
+    top: .75rem;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 #mobile_main_frame_option_buttons > button{
     background-color: #656D4A;
     color: #F5F7E4;
-    height: 50px;
-    width: 50px;
-    border-radius: 25px;
+    height: 2.75rem;
+    width: 2.75rem;
+    border-radius: 50%;
     cursor: pointer;
     outline: none;
     border: none;
+}
+
+@media (max-width: 360px) {
+    #mobile_main_frame_option_buttons > button {
+        height: 2.5rem;
+        width: 2.5rem;
+    }
 }
 
 #mobile_main_frame_option_buttons > button:hover{

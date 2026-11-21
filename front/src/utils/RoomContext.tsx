@@ -43,6 +43,11 @@ type RoomAccess = { roomId: string; playerId: string };
 
 const roomStorageKey = "lyricmatch.roomId";
 const errorMessage = (error: unknown) => error instanceof Error ? error.message : "Unexpected game error";
+const isMembershipFailure = (error: unknown) => {
+    if (typeof error !== "object" || error === null) return false;
+    const details = error as { code?: string; message?: string };
+    return details.code === "42501" || /not a member|not belong|permission denied/i.test(details.message ?? "");
+};
 
 interface RoomContextType {
     room: Room;
@@ -81,6 +86,7 @@ export const RoomProvider = ({ children }: { children: ReactNode }) => {
     const [userId, setUserId] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const roomIdRef = useRef<string | null>(null);
+    const snapshotInFlightRef = useRef<Promise<void> | null>(null);
 
     const clearLocalRoom = useCallback(() => {
         roomIdRef.current = null;
@@ -104,11 +110,10 @@ export const RoomProvider = ({ children }: { children: ReactNode }) => {
     }, []);
 
     const snapshot = useCallback(async (roomId: string, clearOnFailure = true) => {
+        if (snapshotInFlightRef.current) return snapshotInFlightRef.current;
+        const request = (async () => {
         try {
             const identity = await ensureIdentity();
-            const { data: dueData, error: dueError } = await supabase.rpc("advance_due_rooms");
-            if (dueError) throw dueError;
-            void dueData;
             const { data, error: snapshotError } = await supabase.rpc("room_snapshot", { p_room_id: roomId });
             if (snapshotError) throw snapshotError;
             const nextRoom = data as Room;
@@ -119,9 +124,17 @@ export const RoomProvider = ({ children }: { children: ReactNode }) => {
             setPlayer(nextRoom.players.find((item) => item.userId === identity.id) ?? null);
             setInGame(true);
         } catch (snapshotFailure) {
-            if (clearOnFailure) clearLocalRoom();
+            // A temporary network problem must not make a player leave the
+            // room locally.  An explicit leave/expulsion is still reflected
+            // immediately when the authorised snapshot is denied.
+            if (clearOnFailure || isMembershipFailure(snapshotFailure)) clearLocalRoom();
             throw snapshotFailure;
+        } finally {
+            snapshotInFlightRef.current = null;
         }
+        })();
+        snapshotInFlightRef.current = request;
+        return request;
     }, [clearLocalRoom, ensureIdentity]);
 
     const run = useCallback(async <T,>(operation: () => Promise<T>) => {
@@ -214,9 +227,18 @@ export const RoomProvider = ({ children }: { children: ReactNode }) => {
 
     const submitAnswer = useCallback((trackId: string | number) => run(async () => {
         await ensureIdentity();
+        const { error: selectionError } = await supabase.rpc("record_answer_selection", { p_track_id: String(trackId) });
+        if (selectionError) throw selectionError;
+        if (roomIdRef.current) await snapshot(roomIdRef.current);
         const { data, error: functionError } = await supabase.functions.invoke("submit-answer", { body: { trackId } });
-        if (functionError) throw functionError;
-        if (data?.error) throw new Error(data.error);
+        if (functionError || data?.error) {
+            // Selection is already durable at this point.  A provider or Edge
+            // verification failure must not make the UI report that no song
+            // was entered, nor undo the player's in-round action.
+            setError("Your song was saved, but its lyrics could not be verified yet.");
+            if (roomIdRef.current) await snapshot(roomIdRef.current);
+            return;
+        }
         if (roomIdRef.current) await snapshot(roomIdRef.current);
     }), [ensureIdentity, run, snapshot]);
 
@@ -250,28 +272,114 @@ export const RoomProvider = ({ children }: { children: ReactNode }) => {
 
     useEffect(() => {
         const savedRoomId = localStorage.getItem(roomStorageKey);
-        if (savedRoomId) void snapshot(savedRoomId).catch(() => undefined);
+        if (savedRoomId) void snapshot(savedRoomId, false).catch(() => undefined);
     }, [snapshot]);
 
     useEffect(() => {
         const roomId = room?.id;
         if (!roomId) return;
-        const refresh = () => void snapshot(roomId).catch(() => undefined);
-        const channel = supabase.channel(`lyricmatch:room:${roomId}`)
-            .on("postgres_changes", { event: "*", schema: "lyricmatch", table: "rooms", filter: `id=eq.${roomId}` }, refresh)
-            .on("postgres_changes", { event: "*", schema: "lyricmatch", table: "players", filter: `room_id=eq.${roomId}` }, refresh)
-            .on("postgres_changes", { event: "*", schema: "lyricmatch", table: "messages", filter: `room_id=eq.${roomId}` }, refresh)
-            .on("postgres_changes", { event: "*", schema: "lyricmatch", table: "player_answers", filter: `room_id=eq.${roomId}` }, refresh)
-            .subscribe();
-        const heartbeat = window.setInterval(() => {
-            void supabase.rpc("touch_presence", { p_room_id: roomId });
-            void supabase.rpc("advance_due_rooms");
-        }, 20_000);
-        return () => {
-            window.clearInterval(heartbeat);
-            void supabase.removeChannel(channel);
+        let active = true;
+        let refreshTimer: number | undefined;
+        let recoveryTimer: number | undefined;
+        let broadcastChannel: ReturnType<typeof supabase.channel> | undefined;
+        let postgresChangesChannel: ReturnType<typeof supabase.channel> | undefined;
+        let broadcastConnected = false;
+        let postgresChangesConnected = false;
+
+        const refresh = () => void snapshot(roomId, false).catch(() => undefined);
+        const scheduleRefresh = () => {
+            if (!active || refreshTimer !== undefined) return;
+            // A single database action often changes several rows.  Coalesce
+            // those events into one authorised snapshot request.
+            refreshTimer = window.setTimeout(() => {
+                refreshTimer = undefined;
+                refresh();
+            }, 80);
         };
-    }, [room?.id, snapshot]);
+        const stopRecovery = () => {
+            if (recoveryTimer !== undefined) {
+                window.clearInterval(recoveryTimer);
+                recoveryTimer = undefined;
+            }
+        };
+        const startRecovery = () => {
+            if (!active || recoveryTimer !== undefined) return;
+            scheduleRefresh();
+            // This is only a recovery path for a failed/timed-out socket, not
+            // the normal update mechanism.  Broadcast remains server-push.
+            recoveryTimer = window.setInterval(scheduleRefresh, 5_000);
+        };
+        const refreshWhenVisible = () => {
+            if (document.visibilityState === "visible") scheduleRefresh();
+        };
+        const handleSubscriptionStatus = (source: "broadcast" | "postgres", status: string) => {
+            if (source === "broadcast") broadcastConnected = status === "SUBSCRIBED";
+            else postgresChangesConnected = status === "SUBSCRIBED";
+
+            if (broadcastConnected || postgresChangesConnected) {
+                stopRecovery();
+                scheduleRefresh();
+            } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+                startRecovery();
+            }
+        };
+
+        const connect = async () => {
+            try {
+                await ensureIdentity();
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) throw new Error("No authenticated Realtime session");
+                await supabase.realtime.setAuth(session.access_token);
+                if (!active) return;
+
+                broadcastChannel = supabase.channel(`lyricmatch:room:${roomId}`, { config: { private: true } })
+                    .on("broadcast", { event: "room_updated" }, scheduleRefresh)
+                    .subscribe((status) => handleSubscriptionStatus("broadcast", status));
+                // Kept on a separate public channel only during rollout. A
+                // missing Broadcast policy must not prevent an older deployed
+                // database from delivering its existing Postgres Changes.
+                postgresChangesChannel = supabase.channel(`lyricmatch:room-postgres:${roomId}`)
+                    .on("postgres_changes", { event: "*", schema: "lyricmatch", table: "rooms", filter: `id=eq.${roomId}` }, scheduleRefresh)
+                    .on("postgres_changes", { event: "*", schema: "lyricmatch", table: "players", filter: `room_id=eq.${roomId}` }, scheduleRefresh)
+                    .on("postgres_changes", { event: "*", schema: "lyricmatch", table: "messages", filter: `room_id=eq.${roomId}` }, scheduleRefresh)
+                    .on("postgres_changes", { event: "*", schema: "lyricmatch", table: "player_answers", filter: `room_id=eq.${roomId}` }, scheduleRefresh)
+                    .subscribe((status) => handleSubscriptionStatus("postgres", status));
+            } catch {
+                startRecovery();
+            }
+        };
+
+        void connect();
+        window.addEventListener("online", scheduleRefresh);
+        window.addEventListener("focus", refreshWhenVisible);
+        document.addEventListener("visibilitychange", refreshWhenVisible);
+        return () => {
+            active = false;
+            if (refreshTimer !== undefined) window.clearTimeout(refreshTimer);
+            stopRecovery();
+            window.removeEventListener("online", scheduleRefresh);
+            window.removeEventListener("focus", refreshWhenVisible);
+            document.removeEventListener("visibilitychange", refreshWhenVisible);
+            if (broadcastChannel) void supabase.removeChannel(broadcastChannel);
+            if (postgresChangesChannel) void supabase.removeChannel(postgresChangesChannel);
+        };
+    }, [ensureIdentity, room?.id, snapshot]);
+
+    useEffect(() => {
+        const roomId = room?.id;
+        if (!roomId || !["playing", "analyzing"].includes(room.status)) return;
+
+        // Broadcast is the immediate path. This small visible-tab
+        // reconciliation is deliberately limited to an active round/analysis
+        // so a lost WebSocket event cannot leave the game UI on an old screen.
+        const reconcile = () => {
+            if (document.visibilityState === "visible") {
+                void snapshot(roomId, false).catch(() => undefined);
+            }
+        };
+        const timer = window.setInterval(reconcile, 4_000);
+        return () => window.clearInterval(timer);
+    }, [room?.id, room?.status, snapshot]);
 
     return (
         <RoomContext.Provider value={{ room: room as Room, in_game, players, player, userId, error, clearError: () => setError(null), createRoom, joinRoom, startGame, nextRound, resetRoom, leaveRoom, sendMessage, expelPlayer, changeHost, submitAnswer, searchMusic, getAdminMetrics, getAdminLocations, setPlayer, setPlayers, setRoom, setInGame }}>

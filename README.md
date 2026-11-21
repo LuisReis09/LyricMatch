@@ -27,18 +27,21 @@ or function in `public` or another application's schema is changed.
 - `create_room`, `join_room`, `start_game`, host changes, kick, leave, chat,
   reset, and next round are PostgreSQL RPCs. The database validates membership
   and host status for every sensitive operation.
-- A room snapshot is the client state source of truth. The app subscribes to
-  Postgres Changes for its room and reloads that authorized snapshot after a
-  change. `Presence` heartbeats track recent activity without controlling game
-  authority.
+- A room snapshot is the client state source of truth. Database triggers send
+  an authenticated Supabase Realtime Broadcast whenever a room changes; the
+  browser then reloads its authorised snapshot. The event contains no game
+  data. Postgres Changes remains as a rollout compatibility path, and a light
+  snapshot retry is activated only after a socket error. Membership is removed
+  only by leave or expulsion, never by a missed browser heartbeat.
 - `round_ends_at` is the authoritative server timestamp. `advance_due_rooms`
   atomically ends a round, scores answers once, and starts/finishes following
   rounds. A client can request a due-state check as a fallback, but a scheduled
   Edge Function advances games when no browser remains open.
-- Answer correctness is computed only in `submit-answer`: it resolves the
-  selected Deezer track, retrieves lyrics server-side, then invokes a
-  service-role-only SQL function. Browsers cannot submit a score or correctness
-  flag.
+- Selecting a song is first persisted through a narrow authenticated RPC; the
+  slower server-side lyric verification then enriches that saved answer. This
+  means a provider timeout cannot turn a valid in-round click into “no answer”.
+  A verification that finishes during analysis is scored exactly once. Browsers
+  cannot submit a score or correctness flag.
 
 ## Required configuration
 
@@ -87,12 +90,15 @@ database.
    The repository includes a comment-only marker for the remote
    `20261114000000` migration owned by the other shared project. It is not
    executed or modified; this prevents the CLI from asking for a migration
-   history repair. Only the two `20261119...` LyricMatch migrations are new.
+   history repair. All later versioned LyricMatch migrations are new.
 
    The migration creates the `lyricmatch` schema, RLS policies, RPCs, indexes,
    Realtime publication membership, the complete game model, rate-limit table,
-   and imports the original 850 words. It does not drop or alter any resource
-   outside `lyricmatch`.
+   and imports the original 850 words. The latest migrations also create the
+   room-scoped Realtime Broadcast policy/triggers, durable answer scoring, and
+   a six-day project-activity heartbeat. They do not drop or alter any resource
+   outside `lyricmatch`, except for the supported RLS policy on
+   `realtime.messages` required to authorise the private room channel.
 
 4. Deploy the Edge Functions:
 
@@ -103,11 +109,13 @@ database.
    supabase secrets set ALLOWED_ORIGIN=https://your-vercel-domain.example
    ```
 
-5. Schedule a `POST` to `https://<project-ref>.supabase.co/functions/v1/advance-rounds`
-   at least once per minute with the service-role bearer token. Use Supabase
-   Cron/pg_net plus Vault, or a protected external scheduler. Do not hard-code
-   that token in SQL, source code, or Vercel. This scheduling step is required
-   for automatic progression when every player has left the page.
+5. The migration creates the `lyricmatch-advance-due-rooms` Supabase Cron job,
+   which calls the database function every five seconds. Confirm that the
+   `pg_cron` extension is available in the project before applying migrations;
+   no browser tab or external scheduler is needed for round progression. It
+   also creates `lyricmatch-project-heartbeat`, which writes a harmless service
+   timestamp every six days. The heartbeat never changes player or room
+   membership.
 
 For an administrator to see the aggregate dashboard, give that user's JWT
 `app_metadata` the boolean claim `lyricmatch_admin: true` through a trusted
@@ -136,7 +144,9 @@ Supabase project; it has no mock or fallback backend.
    key.
 5. Deploy. `front/vercel.json` provides the SPA history fallback.
 6. Update `ALLOWED_ORIGIN` in Supabase to the deployed frontend origin, then
-   create/join a room from two browsers to validate Realtime.
+   create/join a room from two browsers to validate Realtime. Do not change the
+   project-wide Realtime public-channel setting in a shared Supabase project;
+   LyricMatch uses its own private channel and room-membership policy.
 
 ## Security notes
 
@@ -158,9 +168,12 @@ After deployment, validate with at least two anonymous browser sessions:
 1. Create a password-protected room and join it with its code.
 2. Verify live player/chat/host/kick updates, then refresh one browser and
    confirm it reconnects to the same player.
-3. Start a round, submit simultaneous answers, and confirm the clock and score
-   agree across sessions.
-4. Wait for the scheduled `advance-rounds` invocation with all game tabs
+3. Start a round, select a song, and confirm it remains visible at the analysis
+   screen even if lyric lookup is delayed or unavailable.
+4. From `front/`, run `npm run simulate:room`. It creates three anonymous
+   clients in one temporary room and checks server-push updates without chat,
+   durable selection, answer privacy during a round, and scheduled completion.
+5. Wait for the scheduled `advance-rounds` invocation with all game tabs
    closed, reopen a session, and confirm its authoritative state is current.
-5. Confirm a non-host cannot call host RPCs or write table data using the
+6. Confirm a non-host cannot call host RPCs or write table data using the
    browser console, and a non-admin cannot access dashboard aggregates.

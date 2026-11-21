@@ -1,10 +1,12 @@
 #desktop_screen{
     margin: auto auto;
-    width: 80%;
-    height: 85%;
+    width: min(92vw, 92rem);
+    height: min(86dvh, 50rem);
+    min-height: 34rem;
+    padding: clamp(.5rem, 1vw, 1rem);
 
     display: flex;
-    justify-content: space-between;
+    gap: clamp(.5rem, 1.4vw, 1.25rem);
     align-items: center;
 
     background-color: rgba(67, 36, 11, .4);
@@ -16,5 +18,12 @@
 @media screen and (min-width: 1700px) {
     #desktop_screen{
         height: 85%;
+    }
+}
+
+@media (max-height: 700px) and (min-width: 1200px) {
+    #desktop_screen {
+        height: calc(100dvh - 1.5rem);
+        min-height: 30rem;
     }
 }

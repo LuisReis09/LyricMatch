@@ -23,12 +23,12 @@ const MobileLeftFrame: React.FC<MobileLeftFrameProps> = ({ setFrame }) => {
     const isTheHost = player?.isHost;
     
     useEffect(() => {
-        setRoomCode(room?.code);
-        setMaxPlayers(room?.maxPlayers);
-        setCurrentPlayers(players?.length);
-        setMaxRounds(room?.maxRounds);
-        setCurrentRound(room?.currentRound);
-        setPlayerList(players?.sort((a: any, b: any) => {
+        setRoomCode(room?.code ?? "");
+        setMaxPlayers(room?.maxPlayers ?? 0);
+        setCurrentPlayers(players?.length ?? 0);
+        setMaxRounds(room?.maxRounds ?? 0);
+        setCurrentRound(room?.currentRound ?? 0);
+        setPlayerList([...players].sort((a: any, b: any) => {
             if (a.score > b.score) return -1;
             if (a.score < b.score) return 1;
             return 0;
@@ -37,7 +37,7 @@ const MobileLeftFrame: React.FC<MobileLeftFrameProps> = ({ setFrame }) => {
     , [players, room])
 
     const copyToClipboard = () => {
-        navigator.clipboard.writeText(`http://localhost:3000?code=${room_code}`).then(() => {
+        navigator.clipboard.writeText(`${window.location.origin}?code=${room_code}`).then(() => {
             setShowAlert(true); // Exibe o alerta
             setTimeout(() => setShowAlert(false), 3000); // Oculta o alerta após 3 segundos
         }).catch((err) => {

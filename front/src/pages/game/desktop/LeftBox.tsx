@@ -18,13 +18,13 @@ const LeftBox: React.FC = () => {
   const { room, players, player, leaveRoom } = useRoomContext();
 
   useEffect(() => {
-    setRoomCode(room?.code);
-    setMaxPlayers(room?.maxPlayers);
-    setCurrentPlayers(players?.length);
-    setMaxRounds(room?.maxRounds);
-    setCurrentRound(room?.currentRound);
+    setRoomCode(room?.code ?? "");
+    setMaxPlayers(room?.maxPlayers ?? 0);
+    setCurrentPlayers(players?.length ?? 0);
+    setMaxRounds(room?.maxRounds ?? 0);
+    setCurrentRound(room?.currentRound ?? 0);
 
-    setPlayerList(players?.sort((a: any, b: any) => {
+    setPlayerList([...players].sort((a: any, b: any) => {
       if (a.score > b.score) return -1;
       if (a.score < b.score) return 1;
       return 0;

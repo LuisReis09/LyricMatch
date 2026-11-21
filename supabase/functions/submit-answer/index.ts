@@ -84,6 +84,36 @@ Deno.serve(async (request) => {
   if (!allowed) return respond({ error: "Answer limit reached. Try again in a minute." }, 429, origin);
 
   try {
+    // The browser persists the selection first. Read that durable context
+    // before doing any slow provider request, so a near-deadline selection is
+    // never mistaken for an action outside the round.
+    let { data: context, error: contextError } = await service.rpc("answer_verification_context", {
+      p_user_id: user.id,
+      p_track_id: trackId,
+    });
+    const selectionMissing = contextError?.message === "No selection exists for this track";
+    if (contextError && !selectionMissing) {
+      console.error("Could not load saved answer context", contextError);
+      return respond({ error: `Could not load the saved selection: ${contextError.message}` }, 503, origin);
+    }
+
+    // Older deployed browsers call this function directly. Preserve their
+    // clicks too, instead of returning an opaque selection error.
+    if (selectionMissing || !context?.roundId || !context?.word) {
+      const fallback = await service.rpc("record_answer_selection_for_user", {
+        p_user_id: user.id,
+        p_track_id: trackId,
+      });
+      context = fallback.data;
+      contextError = fallback.error;
+    }
+    if (contextError) {
+      return respond({ error: contextError.message }, contextError.code === "22023" ? 409 : 503, origin);
+    }
+    if (!context?.roundId || !context?.word) {
+      return respond({ error: "Saved selection was not found. Please choose the song again." }, 409, origin);
+    }
+
     const deezerResponse = await fetch(`https://api.deezer.com/track/${trackId}`, { signal: AbortSignal.timeout(8_000) });
     if (!deezerResponse.ok) throw new Error("Track lookup failed");
     const deezer = await deezerResponse.json();
@@ -91,32 +121,22 @@ Deno.serve(async (request) => {
     const artist = String(deezer.artist?.name ?? "").trim();
     if (!track || !artist) throw new Error("Incomplete track data");
 
-    const { data: player, error: playerError } = await service
-      .from("players")
-      .select("room_id, rooms!inner(current_word, status, round_ends_at)")
-      .eq("user_id", user.id)
-      .order("updated_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    if (playerError || !player?.rooms) throw new Error("Room not found");
-    const room = Array.isArray(player.rooms) ? player.rooms[0] : player.rooms;
-    if (room.status !== "playing" || !room.current_word || new Date(room.round_ends_at).getTime() <= Date.now()) {
-      return respond({ error: "The round is closed" }, 409, origin);
-    }
-
     const lyrics = await findLyrics(track, artist);
-    if (!lyrics) return respond({ error: "Lyrics were not found for this track" }, 422, origin);
-    const { error: answerError } = await service.rpc("record_verified_answer", {
+    if (!lyrics) {
+      return respond({ ok: true, verified: false, warning: "Lyrics were not found; your selection was saved." }, 200, origin);
+    }
+    const { data: completed, error: answerError } = await service.rpc("complete_answer_verification", {
       p_user_id: user.id,
+      p_round_id: context.roundId,
       p_track_id: trackId,
       p_track: track,
       p_artist: artist,
       p_album_image: deezer.album?.cover_xl ? String(deezer.album.cover_xl) : null,
       p_preview: deezer.preview ? String(deezer.preview) : null,
-      p_is_correct: normalize(lyrics).includes(normalize(String(room.current_word))),
+      p_is_correct: normalize(lyrics).includes(normalize(String(context.word))),
     });
     if (answerError) throw answerError;
-    return respond({ ok: true }, 200, origin);
+    return respond({ ok: true, verified: Boolean(completed) }, 200, origin);
   } catch (error) {
     return respond({ error: error instanceof Error ? error.message : "Could not submit answer" }, 422, origin);
   }
