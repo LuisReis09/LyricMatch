@@ -4,6 +4,7 @@ import Enter from './Enter';
 import Create from './Create';
 import Avatars from './Avatars';
 import TextInput from '../../utils/TextInput';
+import { Link } from 'react-router-dom';
 import '../../css/initialpages/home.css';
 
 interface HomeProps {
@@ -25,11 +26,20 @@ const Home: React.FC<HomeProps> = ({closeMenu}) => {
     }
 
     return(
-        <div id='home'  onClick={closeMenu}>
+        <main id='home' onClick={closeMenu}>
+            <section className="home_intro" aria-labelledby="game_title">
+                <span className="home_eyebrow">MUSIC • LYRICS • FRIENDS</span>
+                <h1 id="game_title">Lyric <span>Match</span></h1>
+                <p className="home_description">Find a song for the word, challenge your friends, and make every round count.</p>
+                <div className="home_shortcuts">
+                    <Link to="/aboutgame">How to play</Link>
+                    <Link to="/about">Meet the team</Link>
+                </div>
+            </section>
             <div id="form_box">
 
                 <div id="fixed_box">
-                    <h1 id="game_title">Lyric Match</h1>
+                    <div className="form_heading">Ready to play?</div>
 
                     <div id="options_entry_box">
                         <button 
@@ -64,7 +74,7 @@ const Home: React.FC<HomeProps> = ({closeMenu}) => {
             </div>
 
             {openAvatarMenu && <Avatars setAvatarsOpenMenu={setOpenAvatarMenu} avatarOpenMenu={openAvatarMenu}  setAvatar={setAvatar}/> }
-        </div>
+        </main>
     )
 }
 

@@ -1,5 +1,6 @@
 import { useRoomContext } from "./RoomContext";
 import { useSongContext } from "./SongContext";
+import { BadgeCheck } from "lucide-react";
 import "../css/utils/guesscard.css"
 
 interface GuessCardProps {
@@ -23,14 +24,16 @@ const GuessCard: React.FC<GuessCardProps> = ({
             {player?.isHost && !song_param.isCorrect && song_param.id && (
                 <button
                     type="button"
-                    className="guess_card_validate_button fa fa-check"
+                    className="guess_card_validate_button"
                     aria-label="Validate this song and award points"
                     data-tooltip="Validate this song and award its points"
                     onClick={(event) => {
                         event.stopPropagation();
                         void validateAnswer(song_param.id);
                     }}
-                />
+                >
+                    <BadgeCheck size={18} strokeWidth={2.8} aria-hidden="true" />
+                </button>
             )}
             <div 
                 className={`guess_card_song_info ${song_param.isCorrect ? "guess_card_song_info_correct" : "guess_card_song_info_wrong"}`}

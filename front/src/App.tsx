@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Route, Routes } from "react-router-dom";
 import Home from "./pages/home/Home";
 import About from "./pages/about/About";
@@ -18,25 +18,31 @@ const App = () => {
   const { setCount, setTimerInit } = useSearchContext();
   const [alert, setAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
-  const [menuOpen, setMenuOpen] = useState(false);
+  const selectedSongPhaseRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!room) return;
     if (room.status === "analyzing" || room.status === "finished") {
       setCount(null);
       setGuesses(room.answers);
-      setSongSelected((selected: any) => {
-        // A room refresh must not replace a song the player deliberately chose
-        // from another participant's answer card.
-        if (selected && room.answers.some((answer) => answer.id === selected.id)) {
-          return selected;
-        }
-        return room.answers.find((answer) => answer.playerId === player?.id) ?? null;
-      });
+      const answerPhase = `${room.id}:${room.currentRound}:answers`;
+      // Initialise the player's own answer once when results become visible.
+      // Subsequent snapshots must not override a song deliberately selected
+      // from another player's card.
+      if (selectedSongPhaseRef.current !== answerPhase) {
+        selectedSongPhaseRef.current = answerPhase;
+        setSongSelected(room.answers.find((answer) => answer.playerId === player?.id) ?? null);
+      }
     } else if (room.status === "playing") {
       setTimerInit(room.roundStartedAt ? new Date(room.roundStartedAt).getTime() : Date.now());
       setGuesses([]);
-      setSongSelected(null);
+      const playingPhase = `${room.id}:${room.currentRound}:playing`;
+      if (selectedSongPhaseRef.current !== playingPhase) {
+        selectedSongPhaseRef.current = playingPhase;
+        setSongSelected(null);
+      }
+    } else {
+      selectedSongPhaseRef.current = null;
     }
   }, [room, player?.id, setCount, setGuesses, setSongSelected, setTimerInit]);
 
@@ -53,14 +59,14 @@ const App = () => {
 
   return (
     <div className="App" id="App_Screen">
-      {!in_game && <Nav menuOpen={menuOpen} setMenuOpen={setMenuOpen} />}
+      {!in_game && <Nav />}
       {!in_game && (
         <Routes>
-          <Route path="/" element={<Home closeMenu={() => setMenuOpen(false)} />} />
-          <Route path="/about" element={<About closeMenu={() => setMenuOpen(false)} />} />
-          <Route path="/aboutgame" element={<AboutGame closeMenu={() => setMenuOpen(false)} />} />
-          <Route path="/dashboard" element={<Dashboard closeMenu={() => setMenuOpen(false)} />} />
-          <Route path="*" element={<NotFound closeMenu={() => setMenuOpen(false)} />} />
+          <Route path="/" element={<Home closeMenu={() => undefined} />} />
+          <Route path="/about" element={<About closeMenu={() => undefined} />} />
+          <Route path="/aboutgame" element={<AboutGame closeMenu={() => undefined} />} />
+          <Route path="/dashboard" element={<Dashboard closeMenu={() => undefined} />} />
+          <Route path="*" element={<NotFound closeMenu={() => undefined} />} />
         </Routes>
       )}
       {in_game && <GameScreen />}

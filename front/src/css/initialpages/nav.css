@@ -5,13 +5,39 @@ nav{
 }
 
 #nav_bar{
-    margin: 0 auto; /* Esse era o problema de nao centralizar */
+    margin: 0 auto;
     display: flex;
-    width: 80%;
-    height: auto;
-    min-height: 5rem;
+    width: min(90%, 72rem);
+    min-height: 5.5rem;
     justify-content: space-between;
     align-items: center;
+}
+
+.home_nav_links {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .35rem;
+    border: 1px solid rgba(249, 215, 189, .25);
+    border-radius: 999px;
+    background: rgba(31, 19, 12, .45);
+    backdrop-filter: blur(8px);
+}
+
+.home_nav_link {
+    padding: .55rem .85rem;
+    border-radius: 999px;
+    color: rgba(255, 255, 255, .82);
+    font-size: .92rem;
+    text-decoration: none;
+    transition: background .2s ease, color .2s ease;
+}
+
+.home_nav_link:hover,
+.home_nav_link:focus-visible {
+    color: #fff;
+    background: rgba(164, 172, 134, .45);
+    outline: none;
 }
 
 .nav_items{
@@ -49,18 +75,17 @@ nav{
 }
 
 #logo_icon{
-    width: 8rem;
-    height: 8rem;
+    width: 6.25rem;
+    height: 5rem;
     
     background-image: url(/assets/logo.png);
     background-size: contain;
     background-repeat: no-repeat; 
     background-position: center;
 }
-#logo_icon:active,
 #logo_icon:hover{
-    rotate: 360deg;
-    transition: .5s ease-in-out;
+    transform: scale(1.04);
+    transition: .2s ease-in-out;
 }
 
 
@@ -74,9 +99,14 @@ p{
 
 
 @media screen and (max-width: 700px){
-    #logo_icon{
-        width: 5rem;
-        height: 5rem;
+    #nav_bar {
+        min-height: 4.5rem;
     }
+    #logo_icon{
+        width: 4.25rem;
+        height: 3.75rem;
+    }
+    .home_nav_links { gap: 0; }
+    .home_nav_link { padding: .48rem .55rem; font-size: .76rem; }
     
 }

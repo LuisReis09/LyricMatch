@@ -64,7 +64,8 @@
     width: 98%;
     padding: 10px;
 
-    display: flex;
+    display: grid;
+    place-items: center;
     cursor: pointer;
     border-radius: 10px;
     /* flex-grow: 1; */

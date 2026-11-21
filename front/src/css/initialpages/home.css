@@ -1,36 +1,42 @@
 #home {
-    position: relative;
-
-    
+    width: min(90%, 72rem);
+    flex: 1;
+    min-height: 0;
     margin: 0 auto;
-    width: 80%;
-    height: 90%;
-    display: flex;
-    flex-direction: column;
-
-    /* background-color: #f5f5f5; */
+    padding: clamp(1rem, 3vw, 2.5rem) 0 clamp(2rem, 5vw, 4rem);
+    display: grid;
+    grid-template-columns: minmax(15rem, .85fr) minmax(32rem, 1.15fr);
+    align-items: center;
+    gap: clamp(2rem, 6vw, 6rem);
 }
 
-#form_box {
-    margin-left: 0;
-    margin-top: 0;
-    padding: 40px 30px;
+.home_intro { max-width: 27rem; }
+.home_eyebrow { color: #d8e59e; font-size: .78rem; font-weight: 700; letter-spacing: .15em; }
+#game_title { margin: .75rem 0; font-size: clamp(2.5rem, 6vw, 4.5rem); line-height: .9; }
+#game_title span { color: #c8d590; }
+.home_description { margin: 0; color: rgba(255,255,255,.78); font-size: 1.05rem; line-height: 1.55; }
+.home_shortcuts { display: flex; flex-wrap: wrap; gap: .7rem; margin-top: 1.5rem; }
+.home_shortcuts a { padding: .55rem .85rem; border: 1px solid rgba(249,215,189,.35); border-radius: 999px; color: #fff; font-size: .9rem; text-decoration: none; }
+.home_shortcuts a:hover, .home_shortcuts a:focus-visible { background: rgba(164,172,134,.45); outline: none; }
 
-    width: 60%;
+#form_box {
+    width: 100%;
+    padding: clamp(1.5rem, 4vw, 2.6rem);
     
     display: flex;
     flex-direction: row;
     justify-content: space-evenly;
-    gap: 15px;
+    gap: clamp(1.5rem, 4vw, 3rem);
 
     backdrop-filter: blur(2px);
-    background-color: rgb(147, 102, 57, 0.4);
-    border: solid 2px #A68A64;
-    border-radius: 10px;
+    background: linear-gradient(135deg, rgba(96, 59, 29, .82), rgba(52, 31, 15, .74));
+    border: solid 1px rgba(210, 171, 113, .72);
+    border-radius: 1.2rem;
+    box-shadow: 0 1.25rem 4rem rgba(0, 0, 0, .28);
 }
 
 #fixed_box{
-    width: 45%;
+    width: 42%;
     display: flex;
     flex-direction: column;
     gap: 15px;
@@ -38,13 +44,8 @@
     align-items: center;
 }
 
-h1{
-    font-size: 32px;
-    font-weight: 400;
-    text-shadow: #A4AC86 0px 0px 20px;
-}
+.form_heading { color: #fff; font-size: 1.35rem; font-weight: 700; text-align: center; }
 
-#game_title,
 #options_entry_box,
 #user_avatar_box {
     margin: 0 auto;
@@ -141,15 +142,12 @@ h1{
 
 @media screen and (max-width: 1200px) {
     #home {
-        margin: 0 auto;
-        margin-top: 20px;
         width: 95%;
-        height: auto;
+        grid-template-columns: minmax(13rem, .7fr) minmax(30rem, 1.3fr);
     }
 
     #form_box {
-        margin: 0 auto;
-        width: 70%;
+        width: 100%;
         padding: 40px 20px;
         gap: 15px;
     }
@@ -167,13 +165,17 @@ h1{
 @media screen and (max-width: 650px) {
     #home {
         width: 95%;
-        height: auto;
+        display: block;
+        overflow-y: auto;
     }
+    .home_intro { margin: .3rem 0 1.4rem; }
+    .home_eyebrow { font-size: .68rem; }
+    #game_title { font-size: 2.5rem; }
     
     #form_box {
         flex-direction: column;
         margin: 0 auto;
-        width: 80%;
+        width: 100%;
         padding: 15px 15px;
         gap: 10px;
     }

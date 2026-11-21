@@ -27,7 +27,10 @@ const SongPlayer: React.FC = () => {
 
     const updateTime = () => setCurrentTime(audio.currentTime);
     const setAudioDuration = () => setDuration(audio.duration);
-    const handleEnded = () => setIsPlaying(false); 
+    const handleEnded = () => {
+      setCurrentTime(Number.isFinite(audio.duration) ? audio.duration : 0);
+      setIsPlaying(false);
+    };
 
 
     audio.addEventListener('timeupdate', updateTime);
@@ -80,6 +83,9 @@ const SongPlayer: React.FC = () => {
     return `${minutes}:${seconds}`;
   };
 
+  const playbackDuration = Number.isFinite(duration) && duration > 0 ? duration : 0;
+  const playbackPosition = Math.min(Math.max(currentTime, 0), playbackDuration);
+
   return (
     <div id="songPlayer_box">
       <div id="song_info">
@@ -107,8 +113,8 @@ const SongPlayer: React.FC = () => {
             <input
                 type="range"
                 min="0"
-                max={duration}
-                value={currentTime}
+                max={playbackDuration}
+                value={playbackPosition}
                 onChange={handleSeek}
                 style={{ width: '100%' }}
             />

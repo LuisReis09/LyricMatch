@@ -3,30 +3,20 @@
     which contains the home screen menu icons (in the left corner) and the logo (in the right corner).
 */
 import React from 'react'
-
+import { Link } from 'react-router-dom'
 import '../../css/initialpages/nav.css'
-import Menu from './Menu'
-import { useState } from 'react'
 
-
-interface menuProps {
-    menuOpen: boolean,
-    setMenuOpen: (open: boolean) => void
-}
-
-const Nav: React.FC<menuProps> = ({menuOpen, setMenuOpen}) => {
+const Nav: React.FC = () => {
     return (
-        <nav >
+        <nav aria-label="Primary navigation">
             <div id = "nav_bar">
-                <div className="nav_items" 
-                     id="menu_icon" 
-                     style={!menuOpen ? { visibility: "visible" }: { visibility: "hidden" }}
-                     onClick={() => setMenuOpen(!menuOpen)}>
+                <Link to="/" id="logo_icon" aria-label="Lyric Match home" />
+                <div className="home_nav_links">
+                    <Link to="/" className="home_nav_link">Home</Link>
+                    <Link to="/aboutgame" className="home_nav_link">How to play</Link>
+                    <Link to="/about" className="home_nav_link">About us</Link>
                 </div>
-                <div className="nav_items" id="logo_icon"></div>
             </div>
-
-            <Menu openMenu={menuOpen} setOpenMenu={setMenuOpen}/>
         </nav>
     )
 }
