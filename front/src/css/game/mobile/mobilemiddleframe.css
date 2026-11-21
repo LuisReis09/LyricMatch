@@ -1,7 +1,6 @@
 #mobile_middle_frame{
-    height: 100%;
+    height: 90%;
     width: 100%;
-    min-height: 0;
     display: flex;
     flex-direction: column;
     justify-content: center;

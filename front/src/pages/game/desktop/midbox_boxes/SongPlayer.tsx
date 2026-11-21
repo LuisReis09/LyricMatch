@@ -41,6 +41,18 @@ const SongPlayer: React.FC = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const player = audioRef.current;
+    if (!player) return;
+
+    player.pause();
+    player.currentTime = 0;
+    player.load();
+    setCurrentTime(0);
+    setDuration(0);
+    setIsPlaying(false);
+  }, [audio]);
+
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTime = parseFloat(e.target.value);
     if (audioRef.current) {
@@ -53,12 +65,12 @@ const SongPlayer: React.FC = () => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    if (isPlaying) {
+    if (!audio.paused) {
       audio.pause();
     } else {
-      audio.play();
+      void audio.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
     }
-    setIsPlaying(!isPlaying);
+    setIsPlaying(!audio.paused);
   };
 
   const formatTime = (time: number): string => {

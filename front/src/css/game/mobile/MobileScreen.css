@@ -5,8 +5,7 @@
 
 #mobile_screen_box{
     width: 100%;
-    min-height: 100dvh;
-    height: 100dvh;
+    height: 100%;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -28,9 +27,8 @@
 }
 
 #mobile_main_frame{
-    width: min(88vw, 44rem);
-    height: min(84dvh, 52rem);
-    min-height: 31rem;
+    width: 80%;
+    height: 85%;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
@@ -41,23 +39,8 @@
     background-color: rgba(93, 66, 39, 0.4);
     border: 1px solid rgba(166, 138, 100);
     box-shadow: 0 0 30px #b5c38b62;
-    overflow: hidden;
 }
 
-@media (max-width: 500px) {
-    #mobile_main_frame {
-        width: calc(100vw - 1.5rem);
-        height: calc(100dvh - 2.25rem);
-        min-height: 0;
-    }
-}
-
-@media (max-height: 600px) {
-    #mobile_main_frame {
-        height: calc(100dvh - 1rem);
-        min-height: 0;
-    }
-}
 
 
 

@@ -12,7 +12,7 @@ const GuessCard: React.FC<GuessCardProps> = ({
         change_screen,
     }) => {
     const { setSongSelected } = useSongContext();
-    const { player, players } = useRoomContext();
+    const { player, players, validateAnswer } = useRoomContext();
 
 
 
@@ -20,6 +20,18 @@ const GuessCard: React.FC<GuessCardProps> = ({
     return (
         <div className="guess_card_box">
             <div className="guess_card_player_name">{players?.find((el: any) => el.id == song_param.playerId)?.name}:</div>
+            {player?.isHost && !song_param.isCorrect && song_param.id && (
+                <button
+                    type="button"
+                    className="guess_card_validate_button fa fa-check"
+                    aria-label="Validate this song and award points"
+                    data-tooltip="Validate this song and award its points"
+                    onClick={(event) => {
+                        event.stopPropagation();
+                        void validateAnswer(song_param.id);
+                    }}
+                />
+            )}
             <div 
                 className={`guess_card_song_info ${song_param.isCorrect ? "guess_card_song_info_correct" : "guess_card_song_info_wrong"}`}
                 onClick={() => {

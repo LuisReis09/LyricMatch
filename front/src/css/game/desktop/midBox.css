@@ -1,7 +1,6 @@
 #mid_box{
-    width: 44%;
+    width: 40%;
     height: 95%;
-    min-width: 0;
 
     padding: 2% 3%;
     display: flex;

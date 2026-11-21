@@ -16,12 +16,11 @@ const MainFrame: React.FC = () => {
     return (
         <div id="mobile_main_frame">
             <div id="mobile_main_frame_option_buttons">
-                <button className="fa fa-sign-out" aria-label="Leave room" onClick={() => {
+                <button className="fa fa-sign-out"   onClick={() => {
                     void leaveRoom();
                 }}/>
                 <button 
-                    className={frame == "left_frame"? "fa fa-music" : "fa fa-users"}
-                    aria-label={frame == "left_frame" ? "Return to game" : "Show players"}
+                    className={frame == "left_frame"? "fa fa-music" : "fa fa-users"}     
                     onClick={() => {
                         if (frame == "left_frame"){
                             setFrame(lastFrame);
@@ -33,7 +32,7 @@ const MainFrame: React.FC = () => {
                         }
                     }}
                 />
-                <button className="fa fa-comments" aria-label="Open chat" onClick={() => {
+                <button className="fa fa-comments" onClick={() => {
                     if (frame != "chat_frame"){
                         setLastFrame(frame);
                         setFrame("chat_frame");

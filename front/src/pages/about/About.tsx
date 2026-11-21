@@ -25,7 +25,7 @@ const About: React.FC<AboutProps> = ({closeMenu}) => {
                         <hr/>
                         <br/>
                             <span className="highlight">CONTACT: </span>If you're a company interested in partnering with us or purchasing the game, please get in touch.  
-                            Also, if you have any questions, suggestions, or would like to support the project to help keep the game online, feel free to reach out at <span className="highlight">lyricmatch.contact@gmail.com</span>.
+                            Also, if you have any questions, suggestions, or would like to support the project to help keep the game online, feel free to reach out at <span className="highlight">luisreis.lg@gmail.com</span>.
                         <br />
                         <br />
                         <span className="highlight">Special note</span>: We have no commercial interest in this site, and we do not charge for any of our services.

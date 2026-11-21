@@ -25,7 +25,14 @@ const App = () => {
     if (room.status === "analyzing" || room.status === "finished") {
       setCount(null);
       setGuesses(room.answers);
-      setSongSelected(room.answers.find((answer) => answer.playerId === player?.id) ?? null);
+      setSongSelected((selected: any) => {
+        // A room refresh must not replace a song the player deliberately chose
+        // from another participant's answer card.
+        if (selected && room.answers.some((answer) => answer.id === selected.id)) {
+          return selected;
+        }
+        return room.answers.find((answer) => answer.playerId === player?.id) ?? null;
+      });
     } else if (room.status === "playing") {
       setTimerInit(room.roundStartedAt ? new Date(room.roundStartedAt).getTime() : Date.now());
       setGuesses([]);

@@ -66,6 +66,7 @@ interface RoomContextType {
     sendMessage: (message: string) => Promise<void>;
     expelPlayer: (playerId: string) => Promise<void>;
     changeHost: (playerId: string) => Promise<void>;
+    validateAnswer: (answerId: string) => Promise<void>;
     submitAnswer: (trackId: string | number) => Promise<void>;
     searchMusic: (artist: string, track: string) => Promise<any[]>;
     getAdminMetrics: () => Promise<any>;
@@ -214,6 +215,7 @@ export const RoomProvider = ({ children }: { children: ReactNode }) => {
     const sendMessage = useCallback((message: string) => run(() => rpcThenSnapshot("send_message", { p_room_id: roomIdRef.current, p_message: message })), [rpcThenSnapshot, run]);
     const expelPlayer = useCallback((playerId: string) => run(() => rpcThenSnapshot("expel_player", { p_room_id: roomIdRef.current, p_player_id: playerId })), [rpcThenSnapshot, run]);
     const changeHost = useCallback((playerId: string) => run(() => rpcThenSnapshot("change_host", { p_room_id: roomIdRef.current, p_player_id: playerId })), [rpcThenSnapshot, run]);
+    const validateAnswer = useCallback((answerId: string) => run(() => rpcThenSnapshot("validate_answer", { p_answer_id: answerId })), [rpcThenSnapshot, run]);
 
     const leaveRoom = useCallback(() => run(async () => {
         const roomId = roomIdRef.current;
@@ -382,7 +384,7 @@ export const RoomProvider = ({ children }: { children: ReactNode }) => {
     }, [room?.id, room?.status, snapshot]);
 
     return (
-        <RoomContext.Provider value={{ room: room as Room, in_game, players, player, userId, error, clearError: () => setError(null), createRoom, joinRoom, startGame, nextRound, resetRoom, leaveRoom, sendMessage, expelPlayer, changeHost, submitAnswer, searchMusic, getAdminMetrics, getAdminLocations, setPlayer, setPlayers, setRoom, setInGame }}>
+        <RoomContext.Provider value={{ room: room as Room, in_game, players, player, userId, error, clearError: () => setError(null), createRoom, joinRoom, startGame, nextRound, resetRoom, leaveRoom, sendMessage, expelPlayer, changeHost, validateAnswer, submitAnswer, searchMusic, getAdminMetrics, getAdminLocations, setPlayer, setPlayers, setRoom, setInGame }}>
             {children}
         </RoomContext.Provider>
     );

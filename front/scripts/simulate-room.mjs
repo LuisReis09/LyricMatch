@@ -8,6 +8,7 @@ const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const frontDirectory = resolve(scriptDirectory, "..");
 const skipAnswerVerification = process.argv.includes("--skip-submit-answer");
 const legacySubmitAnswer = process.argv.includes("--legacy-submit-answer");
+const verifyLegacyRealtime = process.argv.includes("--verify-legacy-realtime");
 
 const loadLocalEnvironment = async () => {
   for (const envFile of [resolve(frontDirectory, ".env.local"), resolve(frontDirectory, "..", ".env")]) {
@@ -119,17 +120,19 @@ try {
         }
       });
     await subscribe(player.channel);
-    player.legacyChannel = player.client
-      .channel(`lyricmatch:legacy-room:${roomId}`)
-      .on("postgres_changes", { event: "*", schema: "lyricmatch", table: "rooms", filter: `id=eq.${roomId}` }, () => {
-        player.legacyEvents += 1;
-        if (player.observePushSnapshots) {
-          void snapshot(player.client, roomId)
-            .then((state) => { player.legacyStatuses.push(state.status); })
-            .catch(() => undefined);
-        }
-      });
-    await subscribe(player.legacyChannel);
+    if (verifyLegacyRealtime) {
+      player.legacyChannel = player.client
+        .channel(`lyricmatch:legacy-room:${roomId}`)
+        .on("postgres_changes", { event: "*", schema: "lyricmatch", table: "rooms", filter: `id=eq.${roomId}` }, () => {
+          player.legacyEvents += 1;
+          if (player.observePushSnapshots) {
+            void snapshot(player.client, roomId)
+              .then((state) => { player.legacyStatuses.push(state.status); })
+              .catch(() => undefined);
+          }
+        });
+      await subscribe(player.legacyChannel);
+    }
   }));
 
   await rpc(host.client, "start_game", { p_room_id: roomId });
@@ -148,6 +151,8 @@ try {
   assert(Number.isInteger(dueAdvanceResult), "An authenticated client could not request the due-round fallback");
 
   if (!legacySubmitAnswer) await rpc(guestOne.client, "record_answer_selection", { p_track_id: "3135556" });
+  await rpc(guestTwo.client, "record_answer_selection", { p_track_id: "3135556" });
+  await rpc(host.client, "record_answer_selection", { p_track_id: "3135557" });
 
   players.forEach((player) => { player.pushedStatuses = []; player.legacyStatuses = []; });
   if (!skipAnswerVerification) {
@@ -166,19 +171,52 @@ try {
   });
   assert(selectedState.answers[0].track === "Verifying selection…" || selectedState.answers[0].track.length > 0,
     "The selection was not stored before lyric verification");
-  const hiddenAnswerState = await snapshot(guestTwo.client, roomId);
-  assert(hiddenAnswerState.answers.length === 0, "Another player's in-round answer was exposed");
+  const hiddenAnswerState = await snapshot(host.client, roomId);
+  const hostPlayerIdWhilePlaying = hiddenAnswerState.players.find((player) => player.userId === host.userId)?.id;
+  assert(hiddenAnswerState.answers.length === 1 && hiddenAnswerState.answers[0].playerId === hostPlayerIdWhilePlaying,
+    "Another player's in-round answer was exposed");
 
   await waitFor("all clients to receive the round-end state through Broadcast", () => {
     return players.every((player) => player.pushedStatuses.some((status) => status === "analyzing" || status === "finished"));
   }, 25_000);
-  await waitFor("all clients to receive the round-end state through Postgres Changes", () => {
-    return players.every((player) => player.legacyStatuses.some((status) => status === "analyzing" || status === "finished"));
-  }, 10_000);
-  const finishedState = await snapshot(host.client, roomId);
-  assert(finishedState.answers.length === 1, "The selected song disappeared when the round ended");
+  const analysisState = await snapshot(host.client, roomId);
+  assert(analysisState.status === "analyzing", "A completed round did not remain open for the host");
+  assert(analysisState.analysisEndsAt === null, "The analysis screen still has an automatic deadline");
+  const automaticAdvanceResult = await rpc(host.client, "advance_due_rooms", {});
+  assert(automaticAdvanceResult === 0, "The scheduler advanced a room that was waiting for its host");
+  assert((await snapshot(host.client, roomId)).status === "analyzing", "The room left analysis before the host action");
 
-  console.log(`PASS: three-client room simulation completed; ${skipAnswerVerification ? "push updates through round end" : "submit-answer and push updates through round end"}, plus durable selection, were observed without chat activity.`);
+  const guestOnePlayerId = analysisState.players.find((player) => player.userId === guestOne.userId)?.id;
+  const hostPlayerId = analysisState.players.find((player) => player.userId === host.userId)?.id;
+  const sharedAnswer = analysisState.answers.find((answer) => answer.playerId === guestOnePlayerId);
+  const singleAnswer = analysisState.answers.find((answer) => answer.playerId === hostPlayerId);
+  assert(sharedAnswer && singleAnswer, "Answers were not available for host validation");
+  const { error: nonHostValidationError } = await guestOne.client.rpc("validate_answer", { p_answer_id: sharedAnswer.id });
+  assert(nonHostValidationError?.code === "42501", "A non-host could validate an answer");
+  const sharedValidation = await rpc(host.client, "validate_answer", { p_answer_id: sharedAnswer.id });
+  assert(sharedValidation.attempts === 2 && sharedValidation.pointsPerPlayer === 5, "Shared answer validation did not use five points per player");
+  const singleValidation = await rpc(host.client, "validate_answer", { p_answer_id: singleAnswer.id });
+  assert(singleValidation.attempts === 1 && singleValidation.pointsPerPlayer === 10, "Single answer validation did not use ten points");
+  const validatedState = await waitFor("all validated attempts to receive their correct points", async () => {
+    const state = await snapshot(host.client, roomId);
+    const scores = new Map(state.players.map((player) => [player.userId, player.score]));
+    return scores.get(guestOne.userId) === 5 && scores.get(guestTwo.userId) === 5 && scores.get(host.userId) === 10 ? state : null;
+  });
+  assert(validatedState.answers.every((answer) => answer.isCorrect), "Host validation did not mark every validated attempt as correct");
+
+  await rpc(host.client, "next_round", { p_room_id: roomId });
+  const finishedState = await waitFor("the host to open rankings", async () => {
+    const state = await snapshot(host.client, roomId);
+    return state.status === "finished" ? state : null;
+  });
+  if (verifyLegacyRealtime) {
+    await waitFor("all clients to receive the round-end state through Postgres Changes", () => {
+      return players.every((player) => player.legacyStatuses.some((status) => status === "analyzing" || status === "finished"));
+    }, 10_000);
+  }
+  assert(finishedState.answers.length === 3, "The selected songs disappeared when the round ended");
+
+  console.log(`PASS: three-client room simulation completed; ${skipAnswerVerification ? "push updates through round end" : "submit-answer and push updates through round end"}, durable selection, and host-controlled rankings were observed without chat activity.`);
 } finally {
   await Promise.all(players.map(async (player) => {
     if (roomId) await rpc(player.client, "leave_room", { p_room_id: roomId }).catch(() => undefined);

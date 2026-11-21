@@ -1,11 +1,11 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode, Dispatch, SetStateAction } from "react";
 
 // Definição do tipo do contexto
 interface SongContextType {
     song_selected: any;
-    setSongSelected: (song_selected: any) => void;
+    setSongSelected: Dispatch<SetStateAction<any>>;
     guesses: any;
-    setGuesses: (guesses: any) => void;
+    setGuesses: Dispatch<SetStateAction<any>>;
 }
 
 // Criando o contexto

@@ -10,3 +10,6 @@ front/node_modules/
 front/dist/
 .supabase/
 coverage/
+
+.vercel
+.env*
