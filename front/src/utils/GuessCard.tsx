@@ -32,7 +32,7 @@ const GuessCard: React.FC<GuessCardProps> = ({
                         void validateAnswer(song_param.id);
                     }}
                 >
-                    <BadgeCheck size={18} strokeWidth={2.8} aria-hidden="true" />
+                    <BadgeCheck size={20} strokeWidth={2.8} aria-hidden="true" />
                 </button>
             )}
             <div 
