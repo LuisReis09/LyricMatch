@@ -1,0 +1,957 @@
+/*
+ * Mobile/tablet game shell. Everything is scoped to the mobile screen so the
+ * desktop game keeps its existing layout, even though both views share a few
+ * legacy component ids.
+ */
+@media screen and (max-width: 1199px) {
+  #mobile_screen_box {
+    min-height: 100dvh;
+    height: 100%;
+    justify-content: stretch;
+    background:
+      radial-gradient(circle at 50% -20%, rgba(174, 191, 119, .22), transparent 42%),
+      linear-gradient(160deg, rgba(17, 27, 15, .88), rgba(34, 41, 28, .94));
+  }
+
+  #mobile_screen_box #mobile_main_frame {
+    width: min(100%, 62rem);
+    height: 100%;
+    min-height: 100dvh;
+    margin: 0;
+    padding: max(1rem, env(safe-area-inset-top)) clamp(1rem, 3.5vw, 2rem) max(5.75rem, calc(1rem + env(safe-area-inset-bottom)));
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  #mobile_screen_box .mobile-game-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: .25rem 0 1rem;
+  }
+
+  #mobile_screen_box .mobile-game-brand {
+    display: flex;
+    align-items: center;
+    gap: .72rem;
+    min-width: 0;
+  }
+
+  #mobile_screen_box .mobile-game-brand img {
+    width: 2.8rem;
+    height: 2.8rem;
+    padding: .32rem;
+    flex: 0 0 auto;
+    border: 1px solid rgba(218, 231, 177, .48);
+    border-radius: .85rem;
+    background: rgba(91, 109, 65, .3);
+    box-shadow: 0 .4rem 1.25rem rgba(0, 0, 0, .2);
+  }
+
+  #mobile_screen_box .mobile-game-brand strong,
+  #mobile_screen_box .mobile-game-brand span { display: block; }
+  #mobile_screen_box .mobile-game-brand strong { font-size: clamp(1.05rem, 2.8vw, 1.35rem); letter-spacing: .015em; }
+  #mobile_screen_box .mobile-game-brand span { margin-top: .18rem; color: #d7e2b4; font-size: .82rem; }
+
+  #mobile_screen_box .mobile-icon-button {
+    width: 2.75rem;
+    height: 2.75rem;
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 auto;
+    border: 1px solid rgba(213, 226, 173, .32);
+    border-radius: .8rem;
+    color: #f7f9e9;
+    background: rgba(89, 105, 65, .52);
+    font-size: 1.05rem;
+    cursor: pointer;
+  }
+
+  #mobile_screen_box .mobile-leave-button { color: #f8e7ce; }
+  #mobile_screen_box .mobile-icon-button:active { transform: scale(.94); }
+
+  #mobile_screen_box .mobile-game-content {
+    min-height: 0;
+    overflow: hidden;
+    border: 1px solid rgba(204, 220, 160, .2);
+    border-radius: clamp(1rem, 3vw, 1.5rem);
+    background: linear-gradient(145deg, rgba(43, 55, 32, .96), rgba(28, 37, 24, .98));
+    box-shadow: 0 1.15rem 2.5rem rgba(0, 0, 0, .22), inset 0 1px rgba(255,255,255,.035);
+  }
+
+  #mobile_screen_box #mobile_middle_frame,
+  #mobile_screen_box #mobile_right_frame,
+  #mobile_screen_box #mobile_players_box_background,
+  #mobile_screen_box #mobile_chat_frame_box {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    background: transparent;
+  }
+
+  #mobile_screen_box #mobile_middle_frame,
+  #mobile_screen_box #mobile_right_frame { padding: clamp(1.15rem, 4vw, 2rem); }
+
+  #mobile_screen_box #mobile_main_frame_option_buttons {
+    position: static;
+    width: min(100%, 31rem);
+    min-height: 4.35rem;
+    margin: 1rem auto 0;
+    padding: .42rem;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: .38rem;
+    border: 1px solid rgba(204, 220, 160, .18);
+    border-radius: 1.1rem;
+    background: rgba(31, 42, 23, .96);
+    box-shadow: 0 .75rem 1.5rem rgba(0,0,0,.22);
+  }
+
+  #mobile_screen_box #mobile_main_frame_option_buttons > button {
+    min-height: 3.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .45rem;
+    border: 0;
+    border-radius: .8rem;
+    color: #dce7c1;
+    background: transparent;
+    font-size: .86rem;
+    cursor: pointer;
+    transition: background .18s ease, color .18s ease, transform .18s ease;
+  }
+
+  #mobile_screen_box #mobile_main_frame_option_buttons > button i { font-size: 1.05rem; }
+  #mobile_screen_box #mobile_main_frame_option_buttons > button b {
+    display: inline-grid;
+    min-width: 1.18rem;
+    height: 1.18rem;
+    place-items: center;
+    margin-left: .15rem;
+    border-radius: 99px;
+    color: #23301d;
+    background: #d6e69d;
+    font-size: .7rem;
+  }
+  #mobile_screen_box #mobile_main_frame_option_buttons > button.is-active {
+    color: #1f2a18;
+    background: #cfe587;
+    box-shadow: 0 .35rem .9rem rgba(169, 194, 98, .22);
+  }
+  #mobile_screen_box #mobile_main_frame_option_buttons > button.is-active b { background: #758951; color: #fff; }
+  #mobile_screen_box #mobile_main_frame_option_buttons > button:active { transform: scale(.96); }
+
+  #mobile_screen_box .mobile-panel-heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  #mobile_screen_box .mobile-panel-heading h1 { margin: .18rem 0 0; font-size: clamp(1.35rem, 4vw, 1.9rem); line-height: 1; }
+  #mobile_screen_box .mobile-eyebrow { color: #cfe587; font-size: .7rem; font-weight: 800; letter-spacing: .13em; }
+
+  #mobile_screen_box #mobile_players_box_content {
+    width: 100%;
+    height: 100%;
+    padding: clamp(1.15rem, 4vw, 2rem);
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    gap: 1rem;
+  }
+  #mobile_screen_box #game_box_info { display: flex; gap: .48rem; flex-wrap: wrap; justify-content: flex-end; }
+  #mobile_screen_box #game_box_info > div {
+    padding: .42rem .55rem;
+    border: 1px solid rgba(220, 236, 179, .18);
+    border-radius: .65rem;
+    color: #cdd9ae;
+    background: rgba(20, 30, 16, .35);
+    font-size: .72rem;
+    white-space: nowrap;
+  }
+  #mobile_screen_box #game_box_info > div > span { color: #fff; font-size: .8rem; }
+  #mobile_screen_box #mobile_players_list { height: auto; gap: .62rem; padding-right: .15rem; }
+  #mobile_screen_box #mobile_players_list .player-card {
+    width: 100%;
+    min-height: 4.2rem;
+    height: 4.2rem;
+    border: 1px solid rgba(224, 239, 185, .14);
+    border-radius: 1rem;
+    background: rgba(101, 109, 74, .7);
+  }
+  #mobile_screen_box #mobile_players_list .player-card > .player-card-avatar { width: 4.2rem; min-width: 4.2rem; height: 4.2rem; border-width: 2px; }
+  #mobile_screen_box #mobile_players_list .player-card > .player-card-infos > .player-card-name { font-size: 1rem; }
+  #mobile_screen_box .mobile-copy-code-button {
+    width: 100%;
+    min-height: 3rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    padding: .75rem 1rem;
+    border: 1px solid rgba(216, 232, 177, .27);
+    border-radius: .8rem;
+    color: #fff;
+    background: rgba(130, 104, 69, .68);
+    font-size: .95rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  #mobile_screen_box #MOBILE_search_song_mid_box {
+    position: relative;
+    width: min(100%, 35rem);
+    height: 100%;
+    margin: 0 auto;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    gap: clamp(1rem, 3vh, 1.8rem);
+  }
+  #mobile_screen_box .mobile-round-intro { text-align: center; }
+  #mobile_screen_box #search_song_word_box {
+    width: auto;
+    height: auto;
+    min-height: 4rem;
+    margin-top: .45rem;
+    padding: .7rem 1rem;
+    display: grid;
+    place-items: center;
+    border: 1px solid #a4ac86;
+    border-radius: 1rem;
+    background: linear-gradient(135deg, #3d4a30, #293322);
+    color: #f7f9e9;
+    font-size: clamp(1.5rem, 6vw, 2.15rem);
+    font-weight: 800;
+    letter-spacing: .025em;
+    text-transform: uppercase;
+    box-shadow: inset 0 1px rgba(255,255,255,.08);
+  }
+  #mobile_screen_box #search_song_subtitle { height: auto; margin-top: .55rem; color: #d3deb5; font-size: .95rem; line-height: 1.35; }
+  #mobile_screen_box #search_box { width: 100%; height: auto; min-height: 0; justify-content: center; gap: 1rem; }
+  #mobile_screen_box #search_song_inputs_box { width: 100%; height: auto; gap: 1rem; }
+  #mobile_screen_box #search_song_inputs_box .input_box { gap: .35rem; }
+  #mobile_screen_box #search_song_inputs_box .text_input_label { color: #e7f0ce; font-size: .86rem; font-weight: 700; }
+  #mobile_screen_box #search_song_inputs_box .input_box input { height: 3.15rem; border: 1px solid rgba(216, 233, 177, .18); border-radius: .8rem; background: rgba(13, 22, 12, .34); font-size: 1rem; }
+  #mobile_screen_box #search_song_button { width: 100%; }
+  #mobile_screen_box #search_song_button .button { width: 100%; min-height: 3.25rem; border: 1px solid rgba(247, 250, 224, .26); color: #1f2919; background: #cfe587; font-size: 1rem; font-weight: 800; }
+  #mobile_screen_box .mobile-round-timer { display: grid; gap: .45rem; color: #dce7c1; font-size: .85rem; }
+  #mobile_screen_box .mobile-round-timer span { display: flex; justify-content: space-between; }
+  #mobile_screen_box #search_song_timer_back { width: 100%; height: .5rem; background: rgba(127, 79, 36, .55); }
+  #mobile_screen_box #search_song_timer_bar { background: linear-gradient(90deg, #d7e69a, #a4c86a); }
+
+  #mobile_screen_box .mobile-search-loader {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    gap: .7rem;
+    padding: 2rem;
+    border-radius: 1rem;
+    background: rgba(24, 35, 18, .94);
+    backdrop-filter: blur(.5rem);
+    text-align: center;
+  }
+  #mobile_screen_box .mobile-loader-disc {
+    width: 6.6rem;
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+    border: .55rem solid #11180e;
+    border-radius: 50%;
+    color: #223018;
+    background: repeating-radial-gradient(circle, #b8ce79 0 .15rem, #82985d .17rem .35rem, #a9c070 .37rem .53rem);
+    box-shadow: 0 0 0 .22rem #dceaa7, 0 .8rem 1.7rem rgba(0,0,0,.36);
+    animation: mobile-record-spin 1.35s linear infinite;
+  }
+  #mobile_screen_box .mobile-loader-disc span { display: grid; place-items: center; width: 1.7rem; height: 1.7rem; border-radius: 50%; background: #ecf5c9; }
+  #mobile_screen_box .mobile-loader-equalizer { height: 1.55rem; display: flex; align-items: end; gap: .26rem; }
+  #mobile_screen_box .mobile-loader-equalizer i { width: .25rem; height: 45%; border-radius: 99px; background: #d4e98d; animation: mobile-equalizer .75s ease-in-out infinite alternate; }
+  #mobile_screen_box .mobile-loader-equalizer i:nth-child(2) { height: 90%; animation-delay: -.5s; }
+  #mobile_screen_box .mobile-loader-equalizer i:nth-child(3) { height: 65%; animation-delay: -.22s; }
+  #mobile_screen_box .mobile-loader-equalizer i:nth-child(4) { height: 80%; animation-delay: -.64s; }
+  #mobile_screen_box .mobile-search-loader strong { margin-top: .35rem; font-size: 1.2rem; }
+  #mobile_screen_box .mobile-search-loader p { margin: 0; color: #d7e3b4; font-size: .92rem; }
+
+  #mobile_screen_box #MOBILE_search_song_box,
+  #mobile_screen_box #mobile_between_rounds_box {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    gap: 1rem;
+    background: transparent;
+  }
+  #mobile_screen_box #mobile_search_song_header,
+  #mobile_screen_box #mobile_between_rounds_header { min-height: 3rem; gap: .8rem; }
+  #mobile_screen_box #mobile_search_song_button_return,
+  #mobile_screen_box #mobile_between_return_button {
+    width: 2.7rem;
+    height: 2.7rem;
+    flex: 0 0 auto;
+    border-radius: .75rem;
+    background: #656d4a;
+  }
+  #mobile_screen_box #search_song_title,
+  #mobile_screen_box #mobile_between_rounds_title { height: auto; font-size: clamp(1.25rem, 4.5vw, 1.7rem); }
+  #mobile_screen_box #search_results_box,
+  #mobile_screen_box #mobile_between_rounds_guesses_list { height: auto; gap: .65rem; padding-right: .1rem; }
+  #mobile_screen_box #search_results_box .song_card { width: 100%; height: 5.75rem; padding: .45rem; border: 1px solid rgba(223, 237, 183, .12); border-radius: .9rem; background: rgba(105, 123, 74, .24); }
+  #mobile_screen_box #search_results_box .song_card > .song_card_album_cover { width: 4.75rem; min-width: 4.75rem; height: 4.75rem; border-radius: .65rem; }
+  #mobile_screen_box #search_results_box .song_card > .song_card_info > .song_card_song_name { font-size: 1rem; }
+
+  #mobile_screen_box #mobile_chat_frame_box { display: grid; grid-template-rows: auto minmax(0, 1fr); padding: clamp(1.15rem, 4vw, 2rem); }
+  #mobile_screen_box .mobile-chat-heading { padding-bottom: 1rem; }
+  #mobile_screen_box #mobile_chat_frame { min-height: 0; display: block; background: transparent; }
+  #mobile_screen_box #mobile_chat_box { width: 100%; height: 100%; margin: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 1rem; }
+  #mobile_screen_box #mobile_chat_box > #chat_messages_box { height: auto; padding-right: .25rem; font-size: 1rem; line-height: 1.4; gap: .75rem; overflow-y: auto; }
+  #mobile_screen_box .chat_message { max-width: 100%; padding: .62rem .75rem; border-radius: .2rem .75rem .75rem .75rem; background: rgba(102, 120, 72, .27); text-align: left; }
+  #mobile_screen_box .chat_message_sender { color: #d9eb9d; font-weight: 800; }
+  #mobile_screen_box #mobile_chat_box > #chat_input_box { height: 3.25rem; min-height: 3.25rem; display: flex; align-items: center; padding-left: .5rem; border: 1px solid rgba(216, 233, 177, .2); border-radius: .9rem; background: rgba(10, 18, 9, .34); }
+  #mobile_screen_box #mobile_chat_box > #chat_input_box > #mobile_chat_input_text_input { width: 100%; height: 100%; font-size: 1rem; }
+  #mobile_screen_box #mobile_chat_box > #chat_input_box > button { width: 2.55rem; height: 2.55rem; margin-right: .3rem; border: 0; border-radius: .65rem; background: #cfe587; color: #1e2a17; }
+  #mobile_screen_box #mobile_chat_box > #chat_input_box > button i { color: inherit; }
+
+  #mobile_screen_box #mobile_game_start { width: 100%; height: 100%; padding: 1rem; justify-content: center; gap: 2.4rem; text-align: center; }
+  #mobile_screen_box #mobile_game_start > #mobile_spinning_logo { width: min(42vw, 11rem); height: min(42vw, 11rem); }
+  #mobile_screen_box #mobile_game_start_text { max-width: 18rem; color: #d6e1b8; font-size: 1rem; line-height: 1.45; }
+  #mobile_screen_box #mobile_game_start .button { min-width: 12rem; min-height: 3.25rem; color: #202a19; background: #cfe587; font-weight: 800; }
+
+  #mobile_screen_box #mobile_between_rounds_mid_box,
+  #mobile_screen_box #mobile_rankings_box { width: 100%; height: 100%; padding: .25rem; }
+  #mobile_screen_box #mobile_rankings_box { justify-content: space-between; }
+  #mobile_screen_box #mobile_restart_button { min-width: 10rem; min-height: 3rem; color: #1f2a18; background: #cfe587; font-weight: 800; }
+}
+
+@keyframes mobile-record-spin { to { transform: rotate(360deg); } }
+@keyframes mobile-equalizer { to { transform: scaleY(.38); } }
+
+@media screen and (max-width: 420px) {
+  #mobile_screen_box #mobile_main_frame { padding-right: .75rem; padding-left: .75rem; }
+  #mobile_screen_box #mobile_main_frame_option_buttons > button { gap: .25rem; font-size: .76rem; }
+  #mobile_screen_box #mobile_main_frame_option_buttons > button span { display: grid; grid-template-columns: auto auto; align-items: center; gap: .12rem; }
+  #mobile_screen_box .mobile-panel-heading { align-items: flex-start; flex-direction: column; }
+  #mobile_screen_box #game_box_info { justify-content: flex-start; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #mobile_screen_box .mobile-loader-disc,
+  #mobile_screen_box .mobile-loader-equalizer i { animation: none; }
+}
+
+/* Keep the game's artwork as the page background.  These overrides also turn
+ * the shell into a real full-height layout; the first version was still
+ * inheriting the compact, vertically-centred mobile frame underneath it. */
+@media screen and (max-width: 1199px) {
+  #mobile_screen_box {
+    display: block;
+    background: transparent;
+  }
+
+  #mobile_screen_box #mobile_main_frame {
+    width: 100%;
+    height: 100dvh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: initial;
+    /* The navigation is part of the page flow, so a compact safe-area gap
+       lets it sit naturally near the bottom rather than floating upward. */
+    padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
+  }
+
+  #mobile_screen_box .mobile-game-header { flex: 0 0 auto; }
+
+  #mobile_screen_box .mobile-game-content {
+    width: 100%;
+    min-height: 0;
+    flex: 1 1 0;
+    display: flex;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    overflow: hidden;
+  }
+
+  #mobile_screen_box #mobile_main_frame_option_buttons { flex: 0 0 auto; }
+
+  #mobile_screen_box #mobile_middle_frame,
+  #mobile_screen_box #mobile_right_frame,
+  #mobile_screen_box #mobile_players_box_background,
+  #mobile_screen_box #mobile_chat_frame_box {
+    min-height: 0;
+    flex: 1 1 auto;
+  }
+
+  #mobile_screen_box #mobile_middle_frame,
+  #mobile_screen_box #mobile_right_frame {
+    display: flex;
+    align-items: stretch;
+    justify-content: stretch;
+    padding: .35rem 0;
+  }
+
+  #mobile_screen_box #MOBILE_search_song_mid_box,
+  #mobile_screen_box #mobile_between_rounds_mid_box,
+  #mobile_screen_box #mobile_rankings_box,
+  #mobile_screen_box #MOBILE_search_song_box,
+  #mobile_screen_box #mobile_between_rounds_box {
+    width: 100%;
+    max-width: none;
+    min-height: 0;
+    margin: 0;
+  }
+
+  #mobile_screen_box #MOBILE_search_song_mid_box,
+  #mobile_screen_box #mobile_between_rounds_mid_box,
+  #mobile_screen_box #mobile_rankings_box {
+    padding: clamp(.25rem, 1vw, .65rem) 0;
+  }
+
+  #mobile_screen_box #MOBILE_search_song_mid_box {
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    align-content: stretch;
+  }
+
+  #mobile_screen_box #mobile_players_box_content {
+    padding: .35rem 0;
+  }
+
+  #mobile_screen_box #mobile_chat_frame_box {
+    display: flex;
+    flex-direction: column;
+    padding: .35rem 0;
+    background: transparent;
+  }
+
+  #mobile_screen_box #mobile_chat_frame {
+    flex: 1 1 0;
+    min-height: 0;
+  }
+
+  #mobile_screen_box #mobile_chat_box { min-height: 0; }
+
+  #mobile_screen_box #MOBILE_search_song_box,
+  #mobile_screen_box #mobile_between_rounds_box {
+    min-height: 0;
+    padding: .25rem 0;
+  }
+
+  /* Cards keep the original warm game identity without painting a green wall
+     over the supplied background artwork. */
+  #mobile_screen_box #search_song_word_box,
+  #mobile_screen_box .mobile-search-loader,
+  #mobile_screen_box .chat_message,
+  #mobile_screen_box #mobile_players_list .player-card,
+  #mobile_screen_box #search_results_box .song_card {
+    border-color: rgba(228, 197, 149, .32);
+  }
+
+  #mobile_screen_box .mobile-search-loader {
+    background: rgba(32, 26, 19, .94);
+  }
+
+  #mobile_screen_box #search_song_word_box {
+    background: linear-gradient(135deg, rgba(85, 64, 40, .86), rgba(49, 38, 27, .9));
+  }
+
+  #mobile_screen_box #mobile_players_list .player-card,
+  #mobile_screen_box #search_results_box .song_card,
+  #mobile_screen_box .chat_message {
+    background: rgba(78, 62, 42, .72);
+  }
+
+  #mobile_screen_box #mobile_players_list .player-card > .player-card-infos > .player-card-points {
+    color: #f3e9d6;
+  }
+
+  #mobile_screen_box #mobile_chat_box > #chat_input_box,
+  #mobile_screen_box #search_song_inputs_box .input_box input {
+    border-color: rgba(228, 197, 149, .24);
+    background: rgba(28, 22, 16, .56);
+  }
+
+  /* Keep system feedback away from the brand bar. */
+  .App:has(#mobile_screen_box) .custom-alert {
+    top: auto;
+    bottom: calc(5.7rem + env(safe-area-inset-bottom));
+    z-index: 30;
+    width: min(calc(100% - 2rem), 22rem);
+    padding: .8rem 1rem;
+    border: 1px solid rgba(255, 255, 255, .16);
+    border-radius: .75rem;
+    background: rgba(15, 15, 13, .94);
+    text-align: center;
+  }
+
+  /* Bottom navigation: same three-column rhythm at every phone width. */
+  #mobile_screen_box #mobile_main_frame_option_buttons {
+    width: 100%;
+    max-width: none;
+    min-height: 3.9rem;
+    margin-top: .7rem;
+    padding: .32rem .4rem;
+    gap: .2rem;
+    border-color: rgba(218, 190, 146, .28);
+    background: rgba(30, 38, 20, .9);
+  }
+
+  #mobile_screen_box #mobile_main_frame_option_buttons > button {
+    min-width: 0;
+    min-height: 3.15rem;
+    gap: .28rem;
+    padding: .35rem .2rem;
+    white-space: nowrap;
+  }
+
+  #mobile_screen_box #mobile_main_frame_option_buttons > button i {
+    width: 1.18rem;
+    display: inline-flex;
+    flex: 0 0 1.18rem;
+    justify-content: center;
+  }
+
+  #mobile_screen_box #mobile_main_frame_option_buttons > button span {
+    display: inline-flex;
+    min-width: 0;
+    align-items: center;
+    gap: .18rem;
+  }
+
+  /* The round form has one centered reading column instead of independent
+     widths for the word, fields, button and timer. */
+  #mobile_screen_box #MOBILE_search_song_mid_box {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: .45rem 0 .2rem;
+  }
+
+  #mobile_screen_box .mobile-round-intro,
+  #mobile_screen_box #search_box,
+  #mobile_screen_box .mobile-round-timer {
+    width: min(100%, 22rem);
+    margin-right: auto;
+    margin-left: auto;
+  }
+
+  #mobile_screen_box #search_box {
+    flex: 0 0 auto;
+    min-height: auto;
+  }
+
+  #mobile_screen_box #search_song_inputs_box { gap: .82rem; }
+  #mobile_screen_box #search_song_button { margin-top: .15rem; }
+  #mobile_screen_box .mobile-round-timer { margin-top: auto; }
+
+  /* Back controls are absolutely positioned so titles are centered in the
+     whole screen rather than in the remaining space to their right. */
+  #mobile_screen_box #mobile_between_rounds_header,
+  #mobile_screen_box #mobile_search_song_header {
+    position: relative;
+    display: block;
+    min-height: 3rem;
+    text-align: center;
+  }
+
+  #mobile_screen_box #mobile_between_return_button,
+  #mobile_screen_box #mobile_search_song_button_return {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+  }
+
+  #mobile_screen_box #mobile_between_text,
+  #mobile_screen_box #search_song_title {
+    width: 100%;
+    margin: 0;
+    padding: .05rem 3.2rem 0;
+    text-align: center;
+  }
+
+  #mobile_screen_box #mobile_between_rounds_title,
+  #mobile_screen_box #search_song_title {
+    justify-content: center;
+    text-align: center;
+  }
+
+  #mobile_screen_box #mobile_between_rounds_guesses_list,
+  #mobile_screen_box #search_results_box {
+    width: min(100%, 30rem);
+    margin-right: auto;
+    margin-left: auto;
+    gap: .8rem;
+  }
+
+  #mobile_screen_box #mobile_between_rounds_guesses_list .guess_card_song_info.guess_card_song_info_correct {
+    background: rgba(106, 75, 42, .82);
+  }
+
+  #mobile_screen_box #mobile_between_rounds_mid_box {
+    align-items: center;
+    justify-content: space-evenly;
+    gap: 1.1rem;
+    text-align: center;
+  }
+
+  #mobile_screen_box #mobile_between_rounds_mid_box > * {
+    width: min(100%, 22rem);
+  }
+
+  #mobile_screen_box #mobile_between_rounds_mid_box #songPlayer_box {
+    width: min(100%, 13rem);
+    margin: 0 auto;
+    text-align: left;
+  }
+
+  /* Critical navigation fix: each destination owns an equal, self-contained
+     column.  Icons, labels and the player count can no longer affect the
+     geometry of neighbouring destinations. */
+  #mobile_screen_box #mobile_main_frame_option_buttons {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: stretch;
+  }
+
+  #mobile_screen_box #mobile_main_frame_option_buttons > button {
+    display: grid;
+    grid-template-columns: 1.2rem minmax(0, 1fr) auto;
+    align-items: center;
+    justify-content: stretch;
+    overflow: hidden;
+    text-align: left;
+  }
+
+  #mobile_screen_box #mobile_main_frame_option_buttons > button:nth-child(2),
+  #mobile_screen_box #mobile_main_frame_option_buttons > button:nth-child(3) {
+    grid-template-columns: 1.2rem minmax(0, 1fr);
+  }
+
+  #mobile_screen_box #mobile_main_frame_option_buttons .mobile-nav-icon {
+    width: 1.2rem;
+    display: grid;
+    place-items: center;
+  }
+
+  #mobile_screen_box #mobile_main_frame_option_buttons .mobile-nav-icon i {
+    width: auto;
+    min-width: 0;
+    display: block;
+    flex: initial;
+  }
+
+  #mobile_screen_box #mobile_main_frame_option_buttons .mobile-nav-label {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    color: inherit;
+    font-size: .86rem;
+    font-weight: 700;
+    line-height: 1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  #mobile_screen_box #mobile_main_frame_option_buttons .mobile-nav-badge {
+    width: 1.18rem;
+    min-width: 1.18rem;
+    height: 1.18rem;
+    margin: 0;
+    place-self: center end;
+    font-size: .68rem;
+  }
+
+  #mobile_screen_box #mobile_main_frame_option_buttons > button.is-active {
+    box-shadow: none;
+  }
+
+  /* The composer is a true two-column control.  Before this, the 100% input
+     plus the send button overflowed the narrow mobile chat container. */
+  #mobile_screen_box #mobile_chat_box > #chat_input_box {
+    width: 100%;
+    max-width: none;
+    align-self: center;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 2.6rem;
+    gap: .35rem;
+    padding: .3rem;
+  }
+
+  #mobile_screen_box #mobile_chat_box,
+  #mobile_screen_box #mobile_chat_frame,
+  #mobile_screen_box #mobile_chat_frame_box {
+    width: 100%;
+    max-width: none;
+  }
+
+  #mobile_screen_box #mobile_chat_box > #chat_input_box > #mobile_chat_input_text_input {
+    width: auto;
+    min-width: 0;
+    padding: 0 .55rem;
+    text-indent: 0;
+  }
+
+  #mobile_screen_box #mobile_chat_box > #chat_input_box > button {
+    width: 2.6rem;
+    height: 2.6rem;
+    margin: 0;
+  }
+
+  /* Search results own the remaining height and scroll within it.  A list
+     can therefore never be clipped by the fixed bottom navigation. */
+  #mobile_screen_box #MOBILE_search_song_box {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    justify-content: stretch;
+    justify-items: stretch;
+    gap: 1rem;
+  }
+
+  #mobile_screen_box #search_results_box {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    padding: 0 .1rem .25rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  #mobile_screen_box #search_results_box .song_card {
+    flex: 0 0 auto;
+    min-height: 5.75rem;
+  }
+
+  /* Game error feedback must never cover the room identity/header. */
+  .App .custom-alert.game-alert {
+    top: auto;
+    bottom: calc(5.7rem + env(safe-area-inset-bottom));
+  }
+
+  /* Three vertically aligned cells are more resilient than horizontal icon /
+     label rows on narrow phones.  Every destination has its own full width,
+     and the badge is deliberately removed from the layout flow. */
+  #mobile_screen_box #mobile_main_frame_option_buttons > button,
+  #mobile_screen_box #mobile_main_frame_option_buttons > button:nth-child(2),
+  #mobile_screen_box #mobile_main_frame_option_buttons > button:nth-child(3) {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1.15rem auto;
+    place-items: center;
+    gap: .2rem;
+    padding: .35rem .15rem;
+    text-align: center;
+  }
+
+  #mobile_screen_box #mobile_main_frame_option_buttons .mobile-nav-icon {
+    width: 100%;
+    height: 1.15rem;
+  }
+
+  #mobile_screen_box #mobile_main_frame_option_buttons .mobile-nav-label {
+    width: 100%;
+    overflow: visible;
+    font-size: .78rem;
+    text-overflow: clip;
+  }
+
+  #mobile_screen_box #mobile_main_frame_option_buttons .mobile-nav-badge {
+    position: absolute;
+    top: .28rem;
+    right: .35rem;
+    z-index: 1;
+  }
+
+  /* Bottom navigation has no enclosing panel: the three destinations are the
+     controls.  This keeps their geometry independent of decorative art. */
+  #mobile_screen_box #mobile_main_frame_option_buttons {
+    height: 4rem;
+    min-height: 4rem;
+    aspect-ratio: auto;
+    margin-top: .7rem;
+    padding: 0;
+    gap: .35rem;
+    border: 0;
+    border-radius: 0;
+    background-color: transparent;
+    background-image: none;
+    box-shadow: none;
+  }
+
+  #mobile_screen_box #mobile_main_frame_option_buttons > button,
+  #mobile_screen_box #mobile_main_frame_option_buttons > button:nth-child(2),
+  #mobile_screen_box #mobile_main_frame_option_buttons > button:nth-child(3) {
+    width: 100%;
+    height: 100%;
+    min-height: 4rem;
+    border: 0;
+    border-radius: .8rem;
+    color: #edf1d8;
+    background: transparent;
+  }
+
+  #mobile_screen_box #mobile_main_frame_option_buttons > button.is-active {
+    color: #f4f7df;
+    background: linear-gradient(135deg, #7f9549, #64763b);
+    box-shadow: 0 .25rem .7rem rgba(50, 64, 28, .28);
+  }
+
+  #mobile_screen_box #mobile_main_frame_option_buttons > button.is-active .mobile-nav-label,
+  #mobile_screen_box #mobile_main_frame_option_buttons > button.is-active i {
+    color: inherit;
+  }
+
+  #mobile_screen_box #mobile_main_frame_option_buttons .mobile-nav-badge {
+    color: #202a17;
+    background: #d6e96e;
+    box-shadow: none;
+  }
+
+  #mobile_screen_box #mobile_main_frame_option_buttons .mobile-nav-icon {
+    width: auto;
+    height: auto;
+  }
+
+  #mobile_screen_box #mobile_main_frame_option_buttons .mobile-nav-icon i {
+    font-size: 1rem;
+  }
+
+  #mobile_screen_box #mobile_main_frame_option_buttons .mobile-nav-label {
+    width: auto;
+    font-size: .84rem;
+    white-space: nowrap;
+  }
+
+  #mobile_screen_box #mobile_main_frame_option_buttons > button,
+  #mobile_screen_box #mobile_main_frame_option_buttons > button:nth-child(2),
+  #mobile_screen_box #mobile_main_frame_option_buttons > button:nth-child(3) {
+    grid-template-columns: auto minmax(0, auto);
+    grid-template-rows: 1fr;
+    justify-content: center;
+    align-items: center;
+    gap: .38rem;
+    padding: .25rem .15rem;
+  }
+
+  /* The message composer is an actual full-width grid.  The legacy mobile
+     sheet sets the chat to 80% and sizes the input separately, which caused
+     the visual drift and overlapping send button. */
+  #mobile_screen_box #mobile_chat_frame_box,
+  #mobile_screen_box #mobile_chat_frame,
+  #mobile_screen_box #mobile_chat_box {
+    width: 100% !important;
+    max-width: none;
+  }
+
+  #mobile_screen_box #mobile_chat_frame {
+    display: block;
+    align-items: initial;
+  }
+
+  #mobile_screen_box #mobile_chat_box {
+    margin: 0 !important;
+    grid-template-columns: minmax(0, 1fr);
+    justify-content: stretch;
+    justify-items: stretch;
+  }
+
+  #mobile_screen_box #mobile_chat_box > #chat_input_box {
+    box-sizing: border-box;
+    width: 100% !important;
+    max-width: none;
+    height: 3.5rem;
+    min-height: 3.5rem;
+    margin: 0 auto !important;
+    padding: .35rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 2.75rem;
+    align-items: center;
+    gap: .35rem;
+  }
+
+  #mobile_screen_box #mobile_chat_box > #chat_input_box > #mobile_chat_input_text_input {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+    padding: 0 .65rem;
+  }
+
+  #mobile_screen_box #mobile_chat_box > #chat_input_box > button {
+    position: static;
+    inset: auto;
+    transform: none;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin: 0;
+  }
+
+  /* Search-result header: reserve matching side columns, so the title is
+     centered in the complete viewport rather than in the space beside Back. */
+  #mobile_screen_box #mobile_search_song_header {
+    min-height: 2.75rem;
+    display: grid;
+    grid-template-columns: 2.7rem minmax(0, 1fr) 2.7rem;
+    align-items: center;
+  }
+
+  #mobile_screen_box #mobile_search_song_button_return {
+    position: static;
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  #mobile_screen_box #search_song_title {
+    grid-column: 2;
+    grid-row: 1;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+  }
+
+  /* The generic brown result card has higher specificity than the original
+     .selected rule.  This screen-scoped state wins that cascade and makes a
+     choice unmistakable before the answer request finishes. */
+  #mobile_screen_box #search_results_box .song_card {
+    position: relative;
+    box-sizing: border-box;
+  }
+
+  #mobile_screen_box #search_results_box .song_card.selected {
+    border: 2px solid #d6e96e;
+    background: linear-gradient(135deg, rgba(91, 117, 48, .96), rgba(55, 74, 29, .96));
+    box-shadow: 0 0 .85rem rgba(214, 233, 110, .38);
+  }
+
+  #mobile_screen_box #search_results_box .song_card.selected::after {
+    content: "\f00c";
+    position: absolute;
+    top: .55rem;
+    right: .55rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    color: #244015;
+    background: #d6e96e;
+    font-family: FontAwesome;
+    font-size: .78rem;
+  }
+}

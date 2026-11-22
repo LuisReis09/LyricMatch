@@ -15,7 +15,12 @@ const SearchSong: React.FC<SearchSongProps> = ({ setFrame }) => {
     <div id="search_results_box">{count?.map((result: any, index: number) => (
       <SongCard key={index} album_cover={result.album_image} song_name={result.track_name} artist_name={result.artist}
         selected={String(result.id) === selected}
-        func={() => { setSelected(String(result.id)); void submitAnswer(result.id); }} />
+        func={() => {
+          // Keep the visual acknowledgement immediate, even while the answer
+          // is being persisted and the server response is still in flight.
+          setSelected(String(result.id));
+          void submitAnswer(result.id);
+        }} />
     ))}</div>
   </div>;
 };

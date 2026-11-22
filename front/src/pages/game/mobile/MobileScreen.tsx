@@ -1,9 +1,9 @@
 import React from "react";
 
-import Chat from "./Chat";
 import MainFrame from "./MainFrame";
 
 import "../../../css/game/mobile/MobileScreen.css";
+import "../../../css/game/mobile/mobileRework.css";
 
 const MobileScreen: React.FC = () => {
     return(

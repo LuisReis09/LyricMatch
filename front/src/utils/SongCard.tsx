@@ -10,7 +10,19 @@ interface SongCard_Props{
 
 const SongCard: React.FC<SongCard_Props> = ({song_name, artist_name, album_cover, func, selected}) => {
     return (
-        <div className={`song_card ${selected? "selected" : ""}`} onClick={func}>
+        <div
+            className={`song_card ${selected ? "selected" : ""}`}
+            onClick={func}
+            role={func ? "button" : undefined}
+            tabIndex={func ? 0 : undefined}
+            aria-pressed={func ? selected : undefined}
+            onKeyDown={(event) => {
+                if (func && (event.key === "Enter" || event.key === " ")) {
+                    event.preventDefault();
+                    func();
+                }
+            }}
+        >
             <div className="song_card_album_cover" style={{backgroundImage: `url(${album_cover})`}}/>
 
             <div className="song_card_info">

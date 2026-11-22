@@ -1,7 +1,8 @@
 #search_song_mid_box{
     width: 100%;
     height: 100%;
-    
+    position: relative;
+
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -69,4 +70,68 @@
     border-radius: 15px;
     background-color: rgba(194, 197, 170);
     transition: width 1s linear;
+}
+
+.desktop-search-loader {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: 10px;
+    border-radius: 10px;
+    background: rgba(28, 37, 24, .96);
+    text-align: center;
+}
+
+.desktop-loader-disc {
+    width: 112px;
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+    border: 9px solid #11180e;
+    border-radius: 50%;
+    color: #223018;
+    background: repeating-radial-gradient(circle, #b8ce79 0 3px, #82985d 3.5px 7px, #a9c070 7.5px 11px);
+    box-shadow: 0 0 0 4px #dceaa7, 0 14px 28px rgba(0,0,0,.36);
+    animation: desktop-record-spin 1.35s linear infinite;
+}
+
+.desktop-loader-disc span {
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: #ecf5c9;
+}
+
+.desktop-loader-equalizer {
+    height: 26px;
+    display: flex;
+    align-items: end;
+    gap: 4px;
+}
+
+.desktop-loader-equalizer i {
+    width: 4px;
+    height: 45%;
+    border-radius: 99px;
+    background: #d4e98d;
+    animation: desktop-equalizer .75s ease-in-out infinite alternate;
+}
+
+.desktop-loader-equalizer i:nth-child(2) { height: 90%; animation-delay: -.5s; }
+.desktop-loader-equalizer i:nth-child(3) { height: 65%; animation-delay: -.22s; }
+.desktop-loader-equalizer i:nth-child(4) { height: 80%; animation-delay: -.64s; }
+.desktop-search-loader strong { font-size: 20px; }
+.desktop-search-loader p { margin: 0; color: #d7e3b4; }
+
+@keyframes desktop-record-spin { to { transform: rotate(360deg); } }
+@keyframes desktop-equalizer { to { transform: scaleY(.38); } }
+
+@media (prefers-reduced-motion: reduce) {
+    .desktop-loader-disc,
+    .desktop-loader-equalizer i { animation: none; }
 }

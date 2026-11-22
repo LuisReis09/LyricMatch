@@ -48,9 +48,15 @@ const MobileLeftFrame: React.FC<MobileLeftFrameProps> = ({ setFrame }) => {
     return(
         <div id="mobile_players_box_background" className="side_box">
             <div id="mobile_players_box_content">
-            <div id="game_box_info">
-                <div id="game_box_players"><span>{current_players}</span>/<span>{max_players}</span> Players</div>
-                <div id="game_box_rounds"><span>{current_round}</span>/<span>{max_rounds}</span> Rounds</div>
+            <div className="mobile-panel-heading">
+                <div>
+                    <span className="mobile-eyebrow">ROOM</span>
+                    <h1>Players</h1>
+                </div>
+                <div id="game_box_info">
+                    <div id="game_box_players"><span>{current_players}</span>/<span>{max_players}</span> Players</div>
+                    <div id="game_box_rounds"><span>{current_round}</span>/<span>{max_rounds}</span> Rounds</div>
+                </div>
             </div>
 
             <div id="mobile_players_list">
@@ -70,7 +76,9 @@ const MobileLeftFrame: React.FC<MobileLeftFrameProps> = ({ setFrame }) => {
             }
             </div>
 
-            <button className="mobile-copy-code-button" onClick={copyToClipboard}>Share</button>
+            <button className="mobile-copy-code-button" onClick={copyToClipboard}>
+                <i className="fa fa-share-alt" aria-hidden="true" /> Share room
+            </button>
 
             {showAlert && ( // Renderiza o alerta se showAlert for true
                 <div className="custom-alert">

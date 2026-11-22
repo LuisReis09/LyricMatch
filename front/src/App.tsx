@@ -77,7 +77,7 @@ const App = () => {
         </Routes>
       )}
       {in_game && <GameScreen />}
-      {alert && <div className="custom-alert">{alertMessage}</div>}
+      {alert && <div className={`custom-alert${in_game ? " game-alert" : ""}`}>{alertMessage}</div>}
     </div>
   );
 };
